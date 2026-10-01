@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts"
   },
   "keywords": [],
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.3.11",
