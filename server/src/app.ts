@@ -1,4 +1,8 @@
-import express, { type Application, type Request, type Response } from "express";
+import express, {
+  type Application,
+  type Request,
+  type Response,
+} from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -6,6 +10,8 @@ import appConfig from "./config/config.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { ApiError } from "./utils/ApiError.js";
 import { sendResponse } from "./utils/apiResponse.js";
+import authRoutes from "./modules/auth/auth.routes.js";
+import categoryRoutes from "./modules/category/category.routes.js";
 
 const app: Application = express();
 
@@ -17,7 +23,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.use(express.json({ limit: "16kb" }));
@@ -33,9 +39,18 @@ app.get("/api/health", (_req: Request, res: Response) => {
   });
 });
 
+// Auth Routes
+app.use("/api/auth", authRoutes);
+
 app.use((req: Request, _res: Response) => {
-  throw new ApiError(404, `Cannot ${req.method} ${req.originalUrl} - Route Not Found`);
+  throw new ApiError(
+    404,
+    `Cannot ${req.method} ${req.originalUrl} - Route Not Found`,
+  );
 });
+
+// Category Routes
+app.use("/api/categories", categoryRoutes);
 
 app.use(errorHandler);
 
