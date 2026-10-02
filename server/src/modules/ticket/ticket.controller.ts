@@ -1,0 +1,473 @@
+// server/src/modules/ticket/ticket.controller.ts
+import type { Request, Response } from "express";
+import mongoose from "mongoose";
+import Ticket from "./ticket.model.js";
+import TicketMessage from "../ticketMessage/ticketMessage.model.js";
+import TicketActivity from "../ticketActivity/ticketActivity.model.js";
+import Category from "../category/category.model.js";
+import User from "../user/userModel.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { sendResponse } from "../../utils/apiResponse.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import {
+  TICKET_STATUS,
+  MESSAGE_TYPE,
+  MESSAGE_SOURCE,
+} from "../../constants/ticket.js";
+import { USER_ROLES } from "../../constants/roles.js";
+
+/**
+ * 1. Create a new Ticket
+ * POST /api/tickets
+ */
+export const createTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { subject, description, category, priority, attachments } = req.body;
+    const user = req.user!;
+
+    const validCategory = await Category.findById(category);
+    if (!validCategory || !validCategory.isActive) {
+      throw new ApiError(400, "Invalid or inactive category selected");
+    }
+
+    const ticket = await Ticket.create({
+      subject,
+      description,
+      requesterId: user._id,
+      requesterEmail: user.email,
+      category: validCategory._id,
+      priority: priority || undefined,
+      attachments: attachments || [],
+      status: TICKET_STATUS.OPEN,
+      lastMessageAt: new Date(),
+    });
+
+    // Create initial message in conversation thread
+    await TicketMessage.create({
+      ticketId: ticket._id,
+      senderId: user._id,
+      senderEmail: user.email,
+      senderRole: user.role,
+      type: MESSAGE_TYPE.PUBLIC,
+      body: description,
+      attachments: attachments || [],
+      source: MESSAGE_SOURCE.WEB,
+    });
+
+    // Log creation activity
+    await TicketActivity.create({
+      ticketId: ticket._id,
+      actorId: user._id,
+      actorEmail: user.email,
+      action: "TICKET_CREATED",
+      newValue: ticket.ticketNumber,
+      metadata: { priority: ticket.priority, category: validCategory.name },
+    });
+
+    return sendResponse(res, 201, "Ticket created successfully", ticket);
+  },
+);
+
+/**
+ * 2. List Tickets with Search, Filters, Sorting, and Pagination
+ * GET /api/tickets
+ */
+export const getTickets = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user!;
+  const {
+    page = 1,
+    limit = 10,
+    search,
+    status,
+    priority,
+    category,
+    assignedTo,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = req.query;
+
+  const query: any = {};
+
+  // Role-based visibility: Customers only see their own tickets
+  if (user.role === USER_ROLES.CUSTOMER) {
+    query.requesterId = user._id;
+  } else if (assignedTo) {
+    query.assignedTo = assignedTo === "unassigned" ? null : assignedTo;
+  }
+
+  // Filters
+  if (status) query.status = status;
+  if (priority) query.priority = priority;
+  if (category) query.category = category;
+
+  // Search by Ticket Number or Subject
+  if (search) {
+    query.$or = [
+      { ticketNumber: { $regex: search, $options: "i" } },
+      { subject: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const pageNumber = Math.max(1, Number(page));
+  const pageSize = Math.max(1, Number(limit));
+  const skip = (pageNumber - 1) * pageSize;
+
+  const sortOptions: any = {};
+  sortOptions[sortBy as string] = sortOrder === "asc" ? 1 : -1;
+
+  const [tickets, total] = await Promise.all([
+    Ticket.find(query)
+      .populate("requesterId", "name email role")
+      .populate("assignedTo", "name email role")
+      .populate("category", "name")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(pageSize),
+    Ticket.countDocuments(query),
+  ]);
+
+  return sendResponse(res, 200, "Tickets fetched successfully", {
+    tickets,
+    pagination: {
+      total,
+      page: pageNumber,
+      pages: Math.ceil(total / pageSize),
+      limit: pageSize,
+    },
+  });
+});
+
+/**
+ * 3. Get Single Ticket Details
+ * GET /api/tickets/:ticketId
+ */
+export const getTicketById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const user = req.user!;
+
+    const ticket = await Ticket.findById(ticketId)
+      .populate("requesterId", "name email role")
+      .populate("assignedTo", "name email role")
+      .populate("category", "name");
+
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    // Authorization check
+    if (
+      user.role === USER_ROLES.CUSTOMER &&
+      ticket.requesterId._id.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(403, "You do not have permission to view this ticket");
+    }
+
+    return sendResponse(res, 200, "Ticket fetched successfully", ticket);
+  },
+);
+
+/**
+ * 4. Add Message / Reply to Ticket
+ * POST /api/tickets/:ticketId/messages
+ */
+export const addTicketMessage = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const { body, type, attachments } = req.body;
+    const user = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    // Role check: Customers can only reply to their own tickets
+    if (
+      user.role === USER_ROLES.CUSTOMER &&
+      ticket.requesterId.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(403, "You cannot reply to another user's ticket");
+    }
+
+    // Role check: Customers cannot create internal notes
+    if (type === MESSAGE_TYPE.INTERNAL && user.role === USER_ROLES.CUSTOMER) {
+      throw new ApiError(403, "Customers cannot create internal notes");
+    }
+
+    const message = await TicketMessage.create({
+      ticketId: ticket._id,
+      senderId: user._id,
+      senderEmail: user.email,
+      senderRole: user.role,
+      type: type || MESSAGE_TYPE.PUBLIC,
+      body,
+      attachments: attachments || [],
+      source: MESSAGE_SOURCE.WEB,
+    });
+
+    ticket.lastMessageAt = new Date();
+
+    // Auto-reopen if ticket was resolved or closed and customer sends a public reply
+    if (
+      user.role === USER_ROLES.CUSTOMER &&
+      (ticket.status === TICKET_STATUS.RESOLVED ||
+        ticket.status === TICKET_STATUS.CLOSED)
+    ) {
+      const oldStatus = ticket.status;
+      ticket.status = TICKET_STATUS.REOPENED;
+
+      await TicketActivity.create({
+        ticketId: ticket._id,
+        actorId: user._id,
+        actorEmail: user.email,
+        action: "STATUS_CHANGED",
+        oldValue: oldStatus,
+        newValue: TICKET_STATUS.REOPENED,
+        metadata: { reason: "Customer replied to resolved/closed ticket" },
+      });
+    }
+
+    await ticket.save();
+
+    await TicketActivity.create({
+      ticketId: ticket._id,
+      actorId: user._id,
+      actorEmail: user.email,
+      action:
+        type === MESSAGE_TYPE.INTERNAL ? "INTERNAL_NOTE_ADDED" : "REPLY_ADDED",
+      newValue: body.substring(0, 100),
+    });
+
+    return sendResponse(res, 201, "Message added successfully", message);
+  },
+);
+
+/**
+ * 5. Get Ticket Conversation Messages
+ * GET /api/tickets/:ticketId/messages
+ */
+export const getTicketMessages = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const user = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    if (
+      user.role === USER_ROLES.CUSTOMER &&
+      ticket.requesterId.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(
+        403,
+        "You do not have permission to view these messages",
+      );
+    }
+
+    // Customers only see public messages; Agents/Admins see both public and internal notes
+    const messageQuery: any = { ticketId: ticket._id };
+    if (user.role === USER_ROLES.CUSTOMER) {
+      messageQuery.type = MESSAGE_TYPE.PUBLIC;
+    }
+
+    const messages = await TicketMessage.find(messageQuery)
+      .populate("senderId", "name email role")
+      .sort({ createdAt: 1 });
+
+    return sendResponse(res, 200, "Messages fetched successfully", messages);
+  },
+);
+
+/**
+ * 6. Assign / Reassign Ticket (Agent & Admin only)
+ * POST /api/tickets/:ticketId/assign
+ */
+export const assignTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const { agentId } = req.body;
+    const actor = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    const agent = await User.findById(agentId);
+    if (
+      !agent ||
+      (agent.role !== USER_ROLES.AGENT && agent.role !== USER_ROLES.ADMIN)
+    ) {
+      throw new ApiError(400, "Assigned user must have an Agent or Admin role");
+    }
+
+    const oldAssignee = ticket.assignedTo
+      ? ticket.assignedTo.toString()
+      : "Unassigned";
+    ticket.assignedTo = agent._id as mongoose.Types.ObjectId;
+    ticket.assignedAt = new Date();
+
+    // If status is OPEN, move to IN_PROGRESS upon assignment
+    if (ticket.status === TICKET_STATUS.OPEN) {
+      ticket.status = TICKET_STATUS.IN_PROGRESS;
+    }
+
+    await ticket.save();
+
+    await TicketActivity.create({
+      ticketId: ticket._id,
+      actorId: actor._id,
+      actorEmail: actor.email,
+      action: "TICKET_ASSIGNED",
+      oldValue: oldAssignee,
+      newValue: agent.name,
+      metadata: { agentId: agent._id, agentEmail: agent.email },
+    });
+
+    return sendResponse(res, 200, `Ticket assigned to ${agent.name}`, ticket);
+  },
+);
+
+/**
+ * 7. Resolve Ticket (Agent & Admin)
+ * POST /api/tickets/:ticketId/resolve
+ */
+export const resolveTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const actor = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    const oldStatus = ticket.status;
+    ticket.status = TICKET_STATUS.RESOLVED;
+    ticket.resolvedAt = new Date();
+    await ticket.save();
+
+    await TicketActivity.create({
+      ticketId: ticket._id,
+      actorId: actor._id,
+      actorEmail: actor.email,
+      action: "STATUS_CHANGED",
+      oldValue: oldStatus,
+      newValue: TICKET_STATUS.RESOLVED,
+    });
+
+    return sendResponse(res, 200, "Ticket marked as resolved", ticket);
+  },
+);
+
+/**
+ * 8. Reopen Ticket (Customer, Agent & Admin)
+ * POST /api/tickets/:ticketId/reopen
+ */
+export const reopenTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const actor = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    if (
+      actor.role === USER_ROLES.CUSTOMER &&
+      ticket.requesterId.toString() !== actor._id.toString()
+    ) {
+      throw new ApiError(403, "You cannot reopen another user's ticket");
+    }
+
+    const oldStatus = ticket.status;
+    ticket.status = TICKET_STATUS.REOPENED;
+    ticket.resolvedAt = null;
+    ticket.closedAt = null;
+    await ticket.save();
+
+    await TicketActivity.create({
+      ticketId: ticket._id,
+      actorId: actor._id,
+      actorEmail: actor.email,
+      action: "STATUS_CHANGED",
+      oldValue: oldStatus,
+      newValue: TICKET_STATUS.REOPENED,
+    });
+
+    return sendResponse(res, 200, "Ticket reopened successfully", ticket);
+  },
+);
+
+/**
+ * 9. Close Ticket
+ * POST /api/tickets/:ticketId/close
+ */
+export const closeTicket = asyncHandler(async (req: Request, res: Response) => {
+  const { ticketId } = req.params;
+  const actor = req.user!;
+
+  const ticket = await Ticket.findById(ticketId);
+  if (!ticket) {
+    throw new ApiError(404, "Ticket not found");
+  }
+
+  if (
+    actor.role === USER_ROLES.CUSTOMER &&
+    ticket.requesterId.toString() !== actor._id.toString()
+  ) {
+    throw new ApiError(403, "You cannot close another user's ticket");
+  }
+
+  const oldStatus = ticket.status;
+  ticket.status = TICKET_STATUS.CLOSED;
+  ticket.closedAt = new Date();
+  await ticket.save();
+
+  await TicketActivity.create({
+    ticketId: ticket._id,
+    actorId: actor._id,
+    actorEmail: actor.email,
+    action: "STATUS_CHANGED",
+    oldValue: oldStatus,
+    newValue: TICKET_STATUS.CLOSED,
+  });
+
+  return sendResponse(res, 200, "Ticket closed successfully", ticket);
+});
+
+/**
+ * 10. Get Ticket Activity Timeline
+ * GET /api/tickets/:ticketId/activity
+ */
+export const getTicketActivity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const user = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    if (
+      user.role === USER_ROLES.CUSTOMER &&
+      ticket.requesterId.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(
+        403,
+        "You do not have permission to view this activity",
+      );
+    }
+
+    const activities = await TicketActivity.find({ ticketId: ticket._id })
+      .populate("actorId", "name email role")
+      .sort({ createdAt: 1 });
+
+    return sendResponse(res, 200, "Ticket activity fetched", activities);
+  },
+);

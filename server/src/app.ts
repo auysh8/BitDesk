@@ -12,6 +12,7 @@ import { ApiError } from "./utils/ApiError.js";
 import { sendResponse } from "./utils/apiResponse.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import categoryRoutes from "./modules/category/category.routes.js";
+import ticketRoutes from "./modules/ticket/ticket.routes.js";
 
 const app: Application = express();
 
@@ -39,9 +40,12 @@ app.get("/api/health", (_req: Request, res: Response) => {
   });
 });
 
-// Auth Routes
+// 1. API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/tickets", ticketRoutes);
 
+// 2. 404 Handler for undefined routes (MUST be after all routes)
 app.use((req: Request, _res: Response) => {
   throw new ApiError(
     404,
@@ -49,9 +53,7 @@ app.use((req: Request, _res: Response) => {
   );
 });
 
-// Category Routes
-app.use("/api/categories", categoryRoutes);
-
+// 3. Centralized Error Handler (MUST be last)
 app.use(errorHandler);
 
 export default app;
