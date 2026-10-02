@@ -15,6 +15,11 @@ import {
   MESSAGE_SOURCE,
 } from "../../constants/ticket.js";
 import { USER_ROLES } from "../../constants/roles.js";
+import {
+  notifyTicketCreated,
+  notifyTicketReply,
+  notifyStatusChanged,
+} from "../email/emailService.js";
 
 /**
  * 1. Create a new Ticket
@@ -63,6 +68,8 @@ export const createTicket = asyncHandler(
       newValue: ticket.ticketNumber,
       metadata: { priority: ticket.priority, category: validCategory.name },
     });
+    // Send outbound confirmation email (non-blocking)
+    notifyTicketCreated(ticket, user.name);
 
     return sendResponse(res, 201, "Ticket created successfully", ticket);
   },
@@ -226,6 +233,21 @@ export const addTicketMessage = asyncHandler(
         newValue: TICKET_STATUS.REOPENED,
         metadata: { reason: "Customer replied to resolved/closed ticket" },
       });
+      // Send outbound email if it's a public reply
+      if (message.type === MESSAGE_TYPE.PUBLIC) {
+        if (user.role === USER_ROLES.CUSTOMER) {
+          // If customer replied and ticket has an assigned agent, notify agent
+          if (ticket.assignedTo) {
+            User.findById(ticket.assignedTo).then((agent) => {
+              if (agent)
+                notifyTicketReply(ticket, agent.email, user.name, body);
+            });
+          }
+        } else {
+          // If agent replied, notify requester
+          notifyTicketReply(ticket, ticket.requesterEmail, user.name, body);
+        }
+      }
     }
 
     await ticket.save();
@@ -350,6 +372,13 @@ export const resolveTicket = asyncHandler(
     ticket.resolvedAt = new Date();
     await ticket.save();
 
+    notifyStatusChanged(
+      ticket,
+      ticket.requesterEmail,
+      oldStatus,
+      TICKET_STATUS.RESOLVED,
+    );
+
     await TicketActivity.create({
       ticketId: ticket._id,
       actorId: actor._id,
@@ -390,6 +419,13 @@ export const reopenTicket = asyncHandler(
     ticket.closedAt = null;
     await ticket.save();
 
+    notifyStatusChanged(
+      ticket,
+      ticket.requesterEmail,
+      oldStatus,
+      TICKET_STATUS.REOPENED,
+    );
+
     await TicketActivity.create({
       ticketId: ticket._id,
       actorId: actor._id,
@@ -427,6 +463,13 @@ export const closeTicket = asyncHandler(async (req: Request, res: Response) => {
   ticket.status = TICKET_STATUS.CLOSED;
   ticket.closedAt = new Date();
   await ticket.save();
+
+  notifyStatusChanged(
+    ticket,
+    ticket.requesterEmail,
+    oldStatus,
+    TICKET_STATUS.CLOSED,
+  );
 
   await TicketActivity.create({
     ticketId: ticket._id,
@@ -469,5 +512,54 @@ export const getTicketActivity = asyncHandler(
       .sort({ createdAt: 1 });
 
     return sendResponse(res, 200, "Ticket activity fetched", activities);
+  },
+);
+
+/**
+ * Update Ticket Metadata (Priority, Category)
+ * PATCH /api/tickets/:ticketId
+ */
+export const updateTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+    const { priority, category } = req.body;
+    const user = req.user!;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    // Customers cannot modify priority/category once created
+    if (user.role === USER_ROLES.CUSTOMER) {
+      throw new ApiError(
+        403,
+        "Only support staff or admins can update ticket metadata",
+      );
+    }
+
+    if (category) {
+      const validCategory = await Category.findById(category);
+      if (!validCategory) throw new ApiError(400, "Invalid category ID");
+      ticket.category = validCategory._id as any;
+    }
+
+    if (priority) {
+      const oldPriority = ticket.priority;
+      ticket.priority = priority;
+
+      await TicketActivity.create({
+        ticketId: ticket._id,
+        actorId: user._id,
+        actorEmail: user.email,
+        action: "PRIORITY_CHANGED",
+        oldValue: oldPriority,
+        newValue: priority,
+      });
+    }
+
+    await ticket.save();
+
+    return sendResponse(res, 200, "Ticket updated successfully", ticket);
   },
 );

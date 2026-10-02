@@ -1,5 +1,5 @@
-// server/src/modules/ticket/ticket.routes.ts
 import { Router } from "express";
+
 import {
   createTicket,
   getTickets,
@@ -8,6 +8,7 @@ import {
   getTicketMessages,
   assignTicket,
   resolveTicket,
+  updateTicket, // <-- add this
   reopenTicket,
   closeTicket,
   getTicketActivity,
@@ -18,6 +19,7 @@ import {
   createTicketSchema,
   addMessageSchema,
   assignTicketSchema,
+  updateTicketSchema, // <-- add this
 } from "./ticket.validator.js";
 import { USER_ROLES } from "../../constants/roles.js";
 
@@ -30,6 +32,7 @@ router.use(authenticate);
 router.post("/", validate(createTicketSchema), createTicket);
 router.get("/", getTickets);
 router.get("/:ticketId", getTicketById);
+router.patch("/:ticketId", validate(updateTicketSchema), updateTicket);
 
 // Ticket Conversation Thread
 router.post(

@@ -13,6 +13,8 @@ import { sendResponse } from "./utils/apiResponse.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import categoryRoutes from "./modules/category/category.routes.js";
 import ticketRoutes from "./modules/ticket/ticket.routes.js";
+import emailRoutes from "./modules/email/email.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 
 const app: Application = express();
 
@@ -44,6 +46,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // 2. 404 Handler for undefined routes (MUST be after all routes)
 app.use((req: Request, _res: Response) => {
