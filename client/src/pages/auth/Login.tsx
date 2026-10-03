@@ -273,7 +273,39 @@ export const Login: React.FC = () => {
           </form>
         )}
 
-        <div className="mt-6 text-center text-sm text-slate-500">
+        {/* Cold Start Notice */}
+        {isLoading && (
+          <div className="mt-3 rounded-lg bg-amber-50 p-2.5 text-center text-xs font-medium text-amber-700 border border-amber-200 animate-pulse">
+            ⚡ Connecting to Render backend... If the server was sleeping, cold boot takes ~30–40s. Please wait!
+          </div>
+        )}
+
+        {/* Credentials / Testing Callout */}
+        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs text-slate-600">
+          <div className="flex items-center justify-between font-semibold text-slate-800">
+            <span>Primary Admin Account</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("pankajbhandari0714@gmail.com");
+                setPassword("Password123!");
+                setLoginMethod("password");
+              }}
+              className="text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              Auto-fill Admin
+            </button>
+          </div>
+          <div className="mt-1 font-mono text-[11px] text-slate-700 bg-white border border-slate-200 rounded p-1.5 select-all">
+            pankajbhandari0714@gmail.com &bull; Password123!
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
+            &bull; Log in as Admin to manage categories, approve pending agent signups, and promote user roles.<br />
+            &bull; <strong>For OTP Login:</strong> Do not use demo/fictional emails. Use your <strong>real Gmail address</strong> so Google delivers the verification code to your inbox!
+          </p>
+        </div>
+
+        <div className="mt-5 text-center text-sm text-slate-500">
           Don't have an account?{" "}
           <Link
             to="/register"

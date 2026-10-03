@@ -16,9 +16,12 @@ import TicketDetail from "./pages/tickets/TicketDetail";
 import CategoryManager from "./pages/categories/CategoryManager";
 import UserManager from "./pages/users/UserManager";
 
+import ServerColdStartIndicator from "./components/ServerColdStartIndicator";
+
 export function App() {
   return (
     <AuthProvider>
+      <ServerColdStartIndicator />
       <BrowserRouter>
         <Routes>
           {/* Public Auth Routes */}

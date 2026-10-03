@@ -22,14 +22,65 @@ export const axiosClient = axios.create({
   },
 });
 
-// Interceptor 1: Attach Access Token to outgoing requests
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+type StatusListener = (isWakingUp: boolean) => void;
+const listeners = new Set<StatusListener>();
+
+export const registerServerStatusListener = (listener: StatusListener) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+let activeRequests = 0;
+let coldStartTimer: any = null;
+
+const notifyListeners = (isWakingUp: boolean) => {
+  listeners.forEach((fn) => {
+    try {
+      fn(isWakingUp);
+    } catch {
+      // Ignore listener error
+    }
+  });
+};
+
+const handleRequestStart = () => {
+  activeRequests++;
+  if (activeRequests === 1) {
+    // If request doesn't complete within 1.5s, trigger cold-start waking up banner
+    coldStartTimer = setTimeout(() => {
+      notifyListeners(true);
+    }, 1500);
   }
-  return config;
-});
+};
+
+const handleRequestEnd = () => {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) {
+    if (coldStartTimer) {
+      clearTimeout(coldStartTimer);
+      coldStartTimer = null;
+    }
+    notifyListeners(false);
+  }
+};
+
+// Interceptor 1: Attach Access Token & track in-flight requests
+axiosClient.interceptors.request.use(
+  (config) => {
+    handleRequestStart();
+    const token = localStorage.getItem("accessToken");
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    handleRequestEnd();
+    return Promise.reject(error);
+  },
+);
 
 // Interceptor 2: Catch 401s and automatically refresh access token
 let isRefreshing = false;
@@ -50,8 +101,12 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 axiosClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    handleRequestEnd();
+    return response;
+  },
   async (error) => {
+    handleRequestEnd();
     const originalRequest = error.config;
 
     // If 401 and not already retrying
