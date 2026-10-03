@@ -26,7 +26,7 @@ const baseLayout = (content: string, ticketNumber: string) => `
     <div class="content">
       ${content}
       <div class="reply-notice">
-        <strong>💡 Direct Email Reply Enabled:</strong> You can reply directly to this email from your inbox to send a response to our support team.
+        <strong>Direct Email Reply Enabled:</strong> You can reply directly to this email from your inbox to send a response to our support team.
       </div>
     </div>
     <div class="footer">
@@ -165,7 +165,7 @@ export const renderOtpEmail = (
         <div class="otp-code">${otp}</div>
       </div>
       <p style="font-size: 13px; color: #64748b; margin: 16px 0 0 0;">
-        ⏱️ This code expires in <strong>10 minutes</strong>. Never share your OTP with anyone.
+        This code expires in <strong>10 minutes</strong>. Never share your OTP with anyone.
       </p>
     </div>
     <div class="footer">
