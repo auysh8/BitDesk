@@ -126,6 +126,32 @@ export const handleInboundEmail = asyncHandler(
       text || html.replace(/<[^>]*>?/gm, ""),
     );
 
+    // Prevent loopback of system notification emails (e.g. assignment alerts, new ticket notices)
+    if (
+      subject.toLowerCase().includes("you have been assigned") ||
+      subject.toLowerCase().includes("new ticket:") ||
+      subject.toLowerCase().includes("verification code") ||
+      cleanBody.includes("A support ticket has been assigned to you") ||
+      cleanBody.includes("BitDesk Support Ticketing System")
+    ) {
+      console.log(
+        `[Inbound Email] Ignored automated notification loopback for ${ticketNumber}`,
+      );
+      return sendResponse(
+        res,
+        200,
+        "Ignored automated notification email loopback.",
+      );
+    }
+
+    if (!cleanBody.trim()) {
+      return sendResponse(
+        res,
+        200,
+        "Email body was empty after stripping quoted text.",
+      );
+    }
+
     // 5. Look up sender user if registered, or default to customer role
     const senderUser = await User.findOne({ email: senderEmail });
     const senderRole = senderUser ? senderUser.role : USER_ROLES.CUSTOMER;
