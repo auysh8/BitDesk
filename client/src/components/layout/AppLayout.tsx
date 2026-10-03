@@ -103,7 +103,12 @@ export const AppLayout: React.FC = () => {
         {/* Refined User Profile Card */}
         <div className="border-t border-slate-200/80 p-3">
           <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 shadow-2xs hover:bg-slate-100/60 transition">
-            <div className="flex items-center gap-2.5 min-w-0">
+            <Link
+              to="/profile"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-80 transition"
+              title="View & Edit Account Profile"
+            >
               {/* User Avatar with Role Colors */}
               <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white shadow-xs ${
@@ -136,7 +141,7 @@ export const AppLayout: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Logout Button */}
             <button

@@ -55,4 +55,38 @@ describe("BitDesk API Suite", () => {
     assert.equal(response.status, 401);
     assert.equal(data.success, false);
   });
+
+  it("POST /api/upload without auth token should return 401", async () => {
+    const response = await fetch(`${baseUrl}/api/upload`, {
+      method: "POST",
+    });
+    const data = await response.json();
+
+    assert.equal(response.status, 401);
+    assert.equal(data.success, false);
+  });
+
+  it("PATCH /api/auth/profile without auth token should return 401", async () => {
+    const response = await fetch(`${baseUrl}/api/auth/profile`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Updated Name" }),
+    });
+    const data = await response.json();
+
+    assert.equal(response.status, 401);
+    assert.equal(data.success, false);
+  });
+
+  it("PATCH /api/users/123/status without auth token should return 401", async () => {
+    const response = await fetch(`${baseUrl}/api/users/123/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: false }),
+    });
+    const data = await response.json();
+
+    assert.equal(response.status, 401);
+    assert.equal(data.success, false);
+  });
 });

@@ -13,6 +13,9 @@ export interface IUser extends Document {
   role: UserRole;
   isVerified: boolean;
   isApproved: boolean;
+  isActive: boolean;
+  loginAttempts: number;
+  lockUntil?: Date | null;
   otpHash?: string | null;
   otpExpiresAt?: Date | null;
   refreshToken?: string | null;
@@ -62,6 +65,18 @@ const userSchema = new Schema<IUser>(
     isApproved: {
       type: Boolean,
       default: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
     },
     otpHash: {
       type: String,

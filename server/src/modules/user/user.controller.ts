@@ -117,6 +117,37 @@ export const getStaffMembers = asyncHandler(
       .sort({ name: 1 });
 
     return sendResponse(res, 200, "Staff members fetched successfully", staff);
-  }
+  },
 );
+
+/**
+ * Toggle user active status (Admin only)
+ * PATCH /api/users/:userId/status
+ */
+export const toggleUserStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const actor = req.user!;
+
+    if (userId === actor._id.toString()) {
+      throw new ApiError(400, "You cannot deactivate your own account");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    user.isActive = user.isActive === false ? true : false;
+    await user.save({ validateBeforeSave: false });
+
+    return sendResponse(
+      res,
+      200,
+      `User account ${user.isActive ? "activated" : "deactivated"} successfully`,
+      user,
+    );
+  },
+);
+
 

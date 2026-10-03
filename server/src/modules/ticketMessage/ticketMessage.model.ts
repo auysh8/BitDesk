@@ -15,7 +15,7 @@ export interface ITicketMessage extends Document {
   senderRole: UserRole;
   type: MessageType; // "public" or "internal"
   body: string;
-  attachments: string[];
+  attachments: any[];
   source: MessageSource; // "web" or "email"
   emailMessageId?: string | null;
   createdAt: Date;
@@ -56,7 +56,7 @@ const ticketMessageSchema = new Schema<ITicketMessage>(
       trim: true,
     },
     attachments: {
-      type: [String],
+      type: Schema.Types.Mixed,
       default: [],
     },
     source: {

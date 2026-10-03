@@ -15,6 +15,7 @@ import CreateTicket from "./pages/tickets/CreateTicket";
 import TicketDetail from "./pages/tickets/TicketDetail";
 import CategoryManager from "./pages/categories/CategoryManager";
 import UserManager from "./pages/users/UserManager";
+import UserProfile from "./pages/profile/UserProfile";
 
 import ServerColdStartIndicator from "./components/ServerColdStartIndicator";
 
@@ -39,6 +40,7 @@ export function App() {
               <Route path="/tickets" element={<TicketList />} />
               <Route path="/tickets/new" element={<CreateTicket />} />
               <Route path="/tickets/:ticketId" element={<TicketDetail />} />
+              <Route path="/profile" element={<UserProfile />} />
 
               {/* Admin-only Routes */}
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

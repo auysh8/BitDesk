@@ -18,10 +18,11 @@ export interface ITicket extends Document {
   category: mongoose.Types.ObjectId;
   priority: TicketPriority;
   status: TicketStatus;
-  attachments?: string[];
+  attachments?: any[];
   lastMessageAt: Date;
   resolvedAt?: Date | null;
   closedAt?: Date | null;
+  reopenedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,7 +87,7 @@ const ticketSchema = new Schema<ITicket>(
       index: true,
     },
     attachments: {
-      type: [String],
+      type: Schema.Types.Mixed,
       default: [],
     },
     lastMessageAt: {
@@ -98,6 +99,10 @@ const ticketSchema = new Schema<ITicket>(
       default: null,
     },
     closedAt: {
+      type: Date,
+      default: null,
+    },
+    reopenedAt: {
       type: Date,
       default: null,
     },

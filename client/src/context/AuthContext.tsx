@@ -9,6 +9,8 @@ export interface User {
   phone: string;
   role: "customer" | "agent" | "admin";
   isVerified: boolean;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 interface AuthContextType {

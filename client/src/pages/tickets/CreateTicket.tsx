@@ -1,16 +1,18 @@
-// client/src/pages/tickets/CreateTicket.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Paperclip, FileText, Trash2 } from "lucide-react";
 
 export const CreateTicket: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("medium");
   const [description, setDescription] = useState("");
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +30,34 @@ export const CreateTicket: React.FC = () => {
     loadCats();
   }, []);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+
+    try {
+      const res = await axiosClient.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const uploadedFiles = res.data.data.files || [res.data.data.attachment];
+      setAttachments((prev) => [...prev, ...uploadedFiles]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to upload file");
+    } finally {
+      setIsUploading(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -39,6 +69,7 @@ export const CreateTicket: React.FC = () => {
         category,
         priority,
         description,
+        attachments,
       });
 
       const newTicket = res.data.data;
@@ -144,6 +175,54 @@ export const CreateTicket: React.FC = () => {
               placeholder="Describe the issue, steps to reproduce, and any error messages..."
               className="mt-1 w-full rounded-lg border border-slate-300 p-4 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
+          </div>
+
+          {/* Attachments Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                Attachments (Optional)
+              </label>
+              <div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  multiple
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+                >
+                  <Paperclip className="h-3.5 w-3.5 text-slate-500" />
+                  {isUploading ? "Uploading..." : "Attach Files"}
+                </button>
+              </div>
+            </div>
+
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                {attachments.map((att, idx) => (
+                  <div
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                  >
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate max-w-xs">{att.filename}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(idx)}
+                      className="rounded hover:bg-blue-100 p-0.5 text-blue-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

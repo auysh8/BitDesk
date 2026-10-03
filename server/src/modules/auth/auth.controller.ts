@@ -184,9 +184,39 @@ export const loginPassword = asyncHandler(
       throw new ApiError(401, "Invalid email or password.");
     }
 
+    if (user.isActive === false) {
+      throw new ApiError(
+        403,
+        "Your account has been deactivated by an administrator.",
+      );
+    }
+
+    // Check account lockout
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const minutesLeft = Math.ceil(
+        (user.lockUntil.getTime() - Date.now()) / (60 * 1000),
+      );
+      throw new ApiError(
+        403,
+        `Account temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minute(s) or reset your password.`,
+      );
+    }
+
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+      }
+      await user.save({ validateBeforeSave: false });
       throw new ApiError(401, "Invalid email or password.");
+    }
+
+    // Reset lockout counters upon successful login
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+      await user.save({ validateBeforeSave: false });
     }
 
     if (!user.isVerified) {
@@ -199,7 +229,7 @@ export const loginPassword = asyncHandler(
     if (!user.isApproved) {
       throw new ApiError(
         403,
-        "Your staff account is currently pending administrator approval. Please wait for an admin to approve your account."
+        "Your staff account is currently pending administrator approval. Please wait for an admin to approve your account.",
       );
     }
 
@@ -463,4 +493,67 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
   sendOtpEmail(email, user.name, otp, "Account Verification");
 
   return sendResponse(res, 200, "A fresh verification code has been dispatched to your email.");
+});
+
+/**
+ * 12. Update Current User Profile (Name, Phone)
+ * PATCH /api/auth/profile
+ */
+export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user!;
+  const { name, phone } = req.body;
+
+  const dbUser = await User.findById(user._id);
+  if (!dbUser) {
+    throw new ApiError(404, "User account not found");
+  }
+
+  if (name) dbUser.name = name.trim();
+  if (phone) dbUser.phone = phone.trim();
+
+  await dbUser.save({ validateBeforeSave: false });
+
+  return sendResponse(res, 200, "Profile updated successfully", {
+    _id: dbUser._id,
+    name: dbUser.name,
+    email: dbUser.email,
+    phone: dbUser.phone,
+    role: dbUser.role,
+    isVerified: dbUser.isVerified,
+    isApproved: dbUser.isApproved,
+    isActive: dbUser.isActive,
+    createdAt: dbUser.createdAt,
+  });
+});
+
+/**
+ * 13. Change Password
+ * POST /api/auth/change-password
+ */
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user!;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Both current and new passwords are required");
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  const dbUser = await User.findById(user._id).select("+password");
+  if (!dbUser) {
+    throw new ApiError(404, "User account not found");
+  }
+
+  const isMatch = await dbUser.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw new ApiError(400, "Incorrect current password");
+  }
+
+  dbUser.password = newPassword;
+  await dbUser.save();
+
+  return sendResponse(res, 200, "Password updated successfully");
 });

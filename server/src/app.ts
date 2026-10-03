@@ -21,6 +21,7 @@ import ticketRoutes from "./modules/ticket/ticket.routes.js";
 import emailRoutes from "./modules/email/email.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +90,13 @@ app.get("/api/health", (_req: Request, res: Response) => {
   });
 });
 
+// Serve uploaded files statically
+const publicUploadsDir = path.resolve(__dirname, "../public/uploads");
+if (!fs.existsSync(publicUploadsDir)) {
+  fs.mkdirSync(publicUploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(publicUploadsDir));
+
 // 1. API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -96,6 +104,7 @@ app.use("/api/tickets", ticketRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // 2. 404 Handler for undefined routes (MUST be after all routes)
 app.use((req: Request, _res: Response) => {

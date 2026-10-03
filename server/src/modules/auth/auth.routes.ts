@@ -12,6 +12,8 @@ import {
   forgotPassword,
   resetPassword,
   getMe,
+  updateProfile,
+  changePassword,
 } from "./auth.controller.js";
 import { validate } from "../../middleware/validate.js";
 import { authenticate } from "../../middleware/auth.js";
@@ -44,5 +46,7 @@ router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 // Protected Authentication Endpoints
 router.post("/logout", authenticate, logout);
 router.get("/me", authenticate, getMe);
+router.patch("/profile", authenticate, updateProfile);
+router.post("/change-password", authenticate, changePassword);
 
 export default router;

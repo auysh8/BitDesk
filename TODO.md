@@ -28,6 +28,8 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   - [x] `passwordHash` (stored as `password`, hashed with bcrypt)
   - [x] `role` (`customer`, `agent`, `admin`)
   - [x] `isVerified` (email verification status)
+  - [x] `isActive` (account active status with deactivation support)
+  - [x] `loginAttempts`, `lockUntil` (account lockout protection after 5 failed attempts)
   - [x] `otpHash`, `otpExpiresAt`
   - [x] `refreshToken` / session storage
   - [x] `createdAt`, `updatedAt`
@@ -40,7 +42,8 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   - [x] `category` (ref to Category)
   - [x] `priority` (`Low`, `Medium`, `High`, `Urgent`)
   - [x] `status` (`Open`, `In Progress`, `Pending`, `Resolved`, `Closed`, `Reopened`)
-  - [x] `lastMessageAt`, `assignedAt`, `resolvedAt`, `closedAt`
+  - [x] `attachments` (structured metadata: `{ filename, url, size, mimetype }`)
+  - [x] `lastMessageAt`, `assignedAt`, `resolvedAt`, `closedAt`, `reopenedAt`
   - [x] `createdAt`, `updatedAt`
 - **TicketMessage Model**:
   - [x] `ticketId` (ref to Ticket)
@@ -48,6 +51,7 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   - [x] `senderEmail`, `senderRole`
   - [x] `type` (`public`, `internal`)
   - [x] `body` (sanitized text/HTML)
+  - [x] `attachments` (structured metadata: `{ filename, url, size, mimetype }`)
   - [x] `source` (`web`, `email`)
   - [x] `emailMessageId` (for email deduplication and thread tracing)
   - [x] `createdAt`, `updatedAt`
@@ -95,6 +99,12 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   > *Audit Note: Implemented in `forgotPassword`.*
 - [x] Reset password flow (validate token/OTP and update password)
   > *Audit Note: Implemented in `resetPassword`.*
+- [x] Account Lockout & Brute-Force Protection
+  > *Audit Note: Accounts are automatically locked for 15 minutes after 5 consecutive failed password attempts (`loginAttempts` & `lockUntil`).*
+- [x] User Profile Management & Password Change (`PATCH /api/auth/profile`, `POST /api/auth/change-password`)
+  > *Audit Note: Authenticated users can view profile details, update name/phone, and change account passwords.*
+- [x] Admin User Management & Role Mutation (`GET /api/users`, `PATCH /api/users/:userId/role`, `PATCH /api/users/:userId/status`, `POST /api/users/:userId/approve`)
+  > *Audit Note: Admins can approve pending staff, mutate user roles (`customer`, `agent`, `admin`), and activate/deactivate accounts.*
 - [x] Role-Based Access Control (RBAC) middleware for `Customer`, `Support Agent`, and `Admin`
   > *Audit Note: Implemented in `middleware/auth.ts` (`authorizeRoles`).*
 
@@ -202,12 +212,14 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   > *Audit Note: `VerifyOtp.tsx` includes a 60-second countdown timer and "Resend Code" button.*
 - [x] Forgot Password & Reset Password screens
   > *Audit Note: Implemented in `ForgotPassword.tsx` and `ResetPassword.tsx`.*
+- [x] Dedicated User Profile Screen (`/profile`)
+  > *Audit Note: `UserProfile.tsx` enables authenticated users to view membership details, update profile (name, phone), and change password.*
 
 ### 7.2 Application Shell & Layout
 - [x] Responsive navigation shell (Sidebar and Topbar)
   > *Audit Note: Implemented in `AppLayout.tsx` with mobile drawer and desktop sidebar.*
 - [x] Authenticated user menu with role badge and logout action
-  > *Audit Note: Displays user role, initial avatar, and sign out button.*
+  > *Audit Note: Displays user role, initial avatar, links to `/profile`, and sign out button.*
 - [x] Role-based route guards (`CustomerRoute`, `AgentRoute`, `AdminRoute`)
   > *Audit Note: Implemented in `ProtectedRoute.tsx` with `allowedRoles`.*
 - [x] Comprehensive UI states: loading skeletons, empty states, error banners, cold-start indicators
@@ -236,6 +248,8 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
 ### 7.5 Ticket Creation Screen / Modal
 - [x] Form with Subject, Description, Category dropdown, Priority selector
   > *Audit Note: Implemented in `CreateTicket.tsx`.*
+- [x] Multipart File Uploads & Attachment Badges
+  > *Audit Note: `CreateTicket.tsx` supports attaching multiple files via `/api/upload` (`multer`) with preview chips and removal.*
 - [x] Form validation with inline error feedback
   > *Audit Note: Implemented with required attributes and error alert banners.*
 
@@ -244,6 +258,10 @@ Based on the assignment specification: **Production-Ready Full-Stack Ticketing &
   > *Audit Note: Implemented in `TicketDetail.tsx`.*
 - [x] Chronological conversation thread displaying customer replies, agent replies, and system events
   > *Audit Note: Displays sender role, timestamp, channel (`Email` vs `Web`).*
+- [x] Rich-Text / Markdown Formatting Toolbar
+  > *Audit Note: `TicketDetail.tsx` reply composer provides quick action buttons for Bold, Italic, Inline Code, Lists, and Blockquotes.*
+- [x] Multipart File Uploads & Attachment Chips
+  > *Audit Note: Staff and customers can upload attachments via `/api/upload` and download/preview attachments in the message thread.*
 - [x] Clear visual distinction between public replies and internal notes (highlighted background)
   > *Audit Note: Internal notes styled with amber background, lock icon, and internal badge.*
 - [x] Quick action status controls: Resolve, Reopen, Close, and In Progress / Pending buttons

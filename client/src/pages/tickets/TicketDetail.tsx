@@ -14,6 +14,15 @@ import {
   XCircle,
   Clock,
   PlayCircle,
+  Paperclip,
+  Bold,
+  Italic,
+  Code,
+  List,
+  Quote,
+  FileText,
+  Trash2,
+  Download,
 } from "lucide-react";
 import {
   getSocket,
@@ -42,6 +51,10 @@ export const TicketDetail: React.FC = () => {
     "public",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchTicketData = async () => {
     try {
@@ -138,19 +151,68 @@ export const TicketDetail: React.FC = () => {
     }
   };
 
+  const insertMarkdown = (prefix: string, suffix: string = prefix) => {
+    if (!textareaRef.current) return;
+    const el = textareaRef.current;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = replyText.substring(start, end);
+    const replacement = `${prefix}${selected || "text"}${suffix}`;
+    const newText =
+      replyText.substring(0, start) + replacement + replyText.substring(end);
+    setReplyText(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(
+        start + prefix.length,
+        start + prefix.length + (selected.length || 4),
+      );
+    }, 0);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+
+    try {
+      const res = await axiosClient.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const uploadedFiles = res.data.data.files || [res.data.data.attachment];
+      setAttachments((prev) => [...prev, ...uploadedFiles]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to upload file");
+    } finally {
+      setIsUploading(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
+    if (!replyText.trim() && attachments.length === 0) return;
     setIsSubmitting(true);
 
     const actualType = !canReplyPublicly && isStaff ? "internal" : messageType;
 
     try {
       await axiosClient.post(`/tickets/${ticketId}/messages`, {
-        body: replyText,
+        body: replyText || "(Attached files)",
         type: actualType,
+        attachments,
       });
       setReplyText("");
+      setAttachments([]);
       setMessageType(canReplyPublicly ? "public" : "internal");
       await fetchTicketData();
     } catch (err: any) {
@@ -417,6 +479,44 @@ export const TicketDetail: React.FC = () => {
                   <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
                     {msg.body}
                   </div>
+
+                  {/* Message File Attachments */}
+                  {msg.attachments && msg.attachments.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-2.5">
+                      {msg.attachments.map((att: any, attIdx: number) => {
+                        const isObj = typeof att === "object" && att !== null;
+                        const fileName = isObj ? att.filename : att.split("/").pop();
+                        const fileUrl = isObj ? att.url : att;
+                        const fileSize =
+                          isObj && att.size
+                            ? `(${Math.round(att.size / 1024)} KB)`
+                            : "";
+
+                        const fullUrl = fileUrl.startsWith("http")
+                          ? fileUrl
+                          : `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "")}${fileUrl}`;
+
+                        return (
+                          <a
+                            key={attIdx}
+                            href={fullUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition"
+                          >
+                            <FileText className="h-3.5 w-3.5 text-blue-600" />
+                            <span className="truncate max-w-xs">{fileName}</span>
+                            {fileSize && (
+                              <span className="text-[10px] text-slate-400">
+                                {fileSize}
+                              </span>
+                            )}
+                            <Download className="h-3 w-3 text-slate-400 ml-0.5" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -484,8 +584,95 @@ export const TicketDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* Markdown Toolbar & Attach File Action */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-1 text-slate-500">
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown("**")}
+                    title="Bold (**text**)"
+                    className="rounded p-1 hover:bg-slate-100 hover:text-slate-800 text-xs font-bold"
+                  >
+                    <Bold className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown("*")}
+                    title="Italic (*text*)"
+                    className="rounded p-1 hover:bg-slate-100 hover:text-slate-800 text-xs italic"
+                  >
+                    <Italic className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown("`")}
+                    title="Inline Code (`code`)"
+                    className="rounded p-1 hover:bg-slate-100 hover:text-slate-800 text-xs font-mono"
+                  >
+                    <Code className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown("\n- ", "")}
+                    title="Bullet List (- item)"
+                    className="rounded p-1 hover:bg-slate-100 hover:text-slate-800 text-xs"
+                  >
+                    <List className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown("\n> ", "")}
+                    title="Quote (> quote)"
+                    className="rounded p-1 hover:bg-slate-100 hover:text-slate-800 text-xs"
+                  >
+                    <Quote className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    multiple
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition"
+                  >
+                    <Paperclip className="h-3.5 w-3.5 text-slate-500" />
+                    {isUploading ? "Uploading..." : "Attach File"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Uploaded Attachments Badges */}
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((att, idx) => (
+                    <div
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                    >
+                      <FileText className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate max-w-xs">{att.filename}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(idx)}
+                        className="rounded hover:bg-blue-100 p-0.5 text-blue-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <textarea
-                required
+                ref={textareaRef}
                 rows={4}
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
@@ -504,7 +691,7 @@ export const TicketDetail: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploading}
                   className={`inline-flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 ${
                     messageType === "internal"
                       ? "bg-amber-600 hover:bg-amber-700"
