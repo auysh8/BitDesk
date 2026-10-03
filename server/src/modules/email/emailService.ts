@@ -1,17 +1,32 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import { Resend } from "resend";
 import appConfig from "../../config/config.js";
 import EmailEvent from "./emailEvent.model.js";
+import User from "../user/userModel.js";
+import { USER_ROLES } from "../../constants/roles.js";
 import {
   renderTicketCreatedEmail,
+  renderAdminNewTicketAlert,
   renderTicketReplyEmail,
   renderStatusChangedEmail,
   renderTicketAssignedEmail,
 } from "./emailTemplate.js";
 
 let transporter: Transporter | null = null;
+let resendClient: Resend | null = null;
+
+const getResendClient = (): Resend | null => {
+  if (appConfig.RESEND_API_KEY) {
+    if (!resendClient) {
+      resendClient = new Resend(appConfig.RESEND_API_KEY.trim());
+    }
+    return resendClient;
+  }
+  return null;
+};
 
 /**
- * Initializes or retrieves the Nodemailer transporter.
+ * Initializes or retrieves the Nodemailer transporter for SMTP fallback.
  * Falls back to an automatic Ethereal test account if no SMTP credentials are configured.
  */
 const getTransporter = async (): Promise<Transporter> => {
@@ -63,7 +78,10 @@ interface SendEmailOptions {
 
 /**
  * Sends an email asynchronously with full email threading headers.
- * Does NOT block the caller.
+ * Priority order:
+ * 1. Resend API (HTTPS Port 443 - Works seamlessly on Render/Vercel)
+ * 2. Brevo API (HTTPS Port 443)
+ * 3. Nodemailer SMTP (Port 587/465)
  */
 export const sendTicketEmail = async (
   options: SendEmailOptions,
@@ -88,41 +106,112 @@ export const sendTicketEmail = async (
   // Asynchronous background execution (doesn't block the HTTP request)
   setImmediate(async () => {
     try {
-      const activeTransporter = await getTransporter();
+      let providerMessageId: string | undefined;
 
-      const mailOptions = {
-        from:
-          appConfig.EMAIL_FROM || '"BitDesk Support" <support@bitdesk.local>',
-        to,
-        subject: `[${ticketNumber}] ${subject}`,
-        html,
-        messageId,
-        inReplyTo: threadReference,
-        references: threadReference,
-        replyTo: replyToAddress,
-        headers: {
-          "X-BitDesk-Ticket-Number": ticketNumber,
-          "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
-        },
-      };
+      // 1. Check if Resend HTTP API is configured
+      const resend = getResendClient();
+      if (resend) {
+        const fromSender =
+          appConfig.EMAIL_FROM && appConfig.EMAIL_FROM.includes("@")
+            ? appConfig.EMAIL_FROM
+            : "BitDesk Support <onboarding@resend.dev>";
 
-      const info = await activeTransporter.sendMail(mailOptions);
+        const { data, error } = await resend.emails.send({
+          from: fromSender,
+          to: [to],
+          subject: `[${ticketNumber}] ${subject}`,
+          html,
+          replyTo: replyToAddress,
+          headers: {
+            "X-BitDesk-Ticket-Number": ticketNumber,
+            "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
+            "In-Reply-To": threadReference,
+            References: threadReference,
+          },
+        });
 
-      // If in development using Ethereal, log the web preview URL!
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`\n========================================`);
-        console.log(`[EMAIL DISPATCHED] To: ${to}`);
-        console.log(`[EMAIL SUBJECT] [${ticketNumber}] ${subject}`);
-        console.log(`[VIEW EMAIL IN BROWSER]: ${previewUrl}`);
-        console.log(`========================================\n`);
-      } else {
-        console.log(`[EMAIL DISPATCHED] [${ticketNumber}] to ${to}`);
+        if (error) {
+          throw new Error(`Resend Error: ${error.message}`);
+        }
+        providerMessageId = data?.id;
+        console.log(
+          `[Email Service - Resend] [${ticketNumber}] Dispatched to ${to} (ID: ${providerMessageId})`,
+        );
+      }
+      // 2. Check if Brevo HTTP API is configured
+      else if (appConfig.BREVO_API_KEY) {
+        const replyEmailOnly =
+          replyToAddress.match(/<([^>]+)>/)?.[1] || fromEmail;
+        const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: {
+            "api-key": appConfig.BREVO_API_KEY.trim(),
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            sender: { name: "BitDesk Support", email: fromEmail },
+            to: [{ email: to }],
+            replyTo: { email: replyEmailOnly, name: "BitDesk Support" },
+            subject: `[${ticketNumber}] ${subject}`,
+            htmlContent: html,
+            headers: {
+              "X-BitDesk-Ticket-Number": ticketNumber,
+              "In-Reply-To": threadReference,
+              References: threadReference,
+            },
+          }),
+        });
+
+        const brevoJson: any = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            `Brevo Error: ${brevoJson.message || JSON.stringify(brevoJson)}`,
+          );
+        }
+        providerMessageId = brevoJson.messageId;
+        console.log(
+          `[Email Service - Brevo] [${ticketNumber}] Dispatched to ${to} (ID: ${providerMessageId})`,
+        );
+      }
+      // 3. Fallback to standard Nodemailer SMTP
+      else {
+        const activeTransporter = await getTransporter();
+
+        const mailOptions = {
+          from:
+            appConfig.EMAIL_FROM || '"BitDesk Support" <support@bitdesk.local>',
+          to,
+          subject: `[${ticketNumber}] ${subject}`,
+          html,
+          messageId,
+          inReplyTo: threadReference,
+          references: threadReference,
+          replyTo: replyToAddress,
+          headers: {
+            "X-BitDesk-Ticket-Number": ticketNumber,
+            "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
+          },
+        };
+
+        const info = await activeTransporter.sendMail(mailOptions);
+        providerMessageId = info.messageId;
+
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+          console.log(`\n========================================`);
+          console.log(`[EMAIL DISPATCHED] To: ${to}`);
+          console.log(`[EMAIL SUBJECT] [${ticketNumber}] ${subject}`);
+          console.log(`[VIEW EMAIL IN BROWSER]: ${previewUrl}`);
+          console.log(`========================================\n`);
+        } else {
+          console.log(`[EMAIL DISPATCHED] [${ticketNumber}] to ${to}`);
+        }
       }
 
       // Record successful delivery event
       await EmailEvent.create({
-        providerMessageId: info.messageId,
+        providerMessageId: providerMessageId || messageId,
         messageId,
         ticketId: ticketId || null,
         ticketNumber,
@@ -168,6 +257,43 @@ export const notifyTicketCreated = (ticket: any, requesterName: string) => {
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
   });
+};
+
+/**
+ * Notifies all administrators when a new ticket is opened by a customer
+ */
+export const notifyAdminsTicketCreated = async (
+  ticket: any,
+  requesterName: string,
+) => {
+  try {
+    const adminUsers = await User.find({ role: USER_ROLES.ADMIN }).select(
+      "email name",
+    );
+    for (const admin of adminUsers) {
+      if (admin.email && admin.email !== ticket.requesterEmail) {
+        sendTicketEmail({
+          to: admin.email,
+          subject: `New Ticket: ${ticket.subject}`,
+          html: renderAdminNewTicketAlert(
+            ticket.ticketNumber,
+            ticket.subject,
+            requesterName,
+            ticket.requesterEmail,
+            ticket.priority,
+            ticket.description,
+          ),
+          ticketNumber: ticket.ticketNumber,
+          ticketId: ticket._id,
+        });
+      }
+    }
+  } catch (err: any) {
+    console.error(
+      "[Email Service] Failed to notify admins of new ticket:",
+      err.message,
+    );
+  }
 };
 
 export const notifyTicketReply = (
@@ -231,4 +357,3 @@ export const notifyTicketAssigned = (
     ticketId: ticket._id,
   });
 };
-

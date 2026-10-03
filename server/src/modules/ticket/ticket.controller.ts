@@ -17,6 +17,7 @@ import {
 import { USER_ROLES } from "../../constants/roles.js";
 import {
   notifyTicketCreated,
+  notifyAdminsTicketCreated,
   notifyTicketReply,
   notifyStatusChanged,
   notifyTicketAssigned,
@@ -71,6 +72,7 @@ export const createTicket = asyncHandler(
     });
     // Send outbound confirmation email (non-blocking)
     notifyTicketCreated(ticket, user.name);
+    notifyAdminsTicketCreated(ticket, user.name);
 
     return sendResponse(res, 201, "Ticket created successfully", ticket);
   },

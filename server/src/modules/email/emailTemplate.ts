@@ -56,6 +56,28 @@ export const renderTicketCreatedEmail = (
   return baseLayout(content, ticketNumber);
 };
 
+export const renderAdminNewTicketAlert = (
+  ticketNumber: string,
+  subject: string,
+  requesterName: string,
+  requesterEmail: string,
+  priority: string,
+  description: string,
+) => {
+  const content = `
+    <p>🔔 A new support ticket has been submitted by <strong>${requesterName}</strong> (${requesterEmail}).</p>
+    <div class="quote-box">
+      <strong>Ticket Number:</strong> ${ticketNumber}<br>
+      <strong>Priority:</strong> ${(priority || "MEDIUM").toUpperCase()}<br>
+      <strong>Subject:</strong> ${subject}<br><br>
+      <strong>Description:</strong><br>
+      ${description.replace(/\n/g, "<br>")}
+    </div>
+    <p>Please log in to BitDesk to claim or assign this ticket.</p>
+  `;
+  return baseLayout(content, ticketNumber);
+};
+
 export const renderTicketReplyEmail = (
   ticketNumber: string,
   subject: string,

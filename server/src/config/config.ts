@@ -21,7 +21,9 @@ const appConfig = {
   REDIS_HOST: process.env.REDIS_HOST || "127.0.0.1",
   REDIS_PORT: Number(process.env.REDIS_PORT) || 6379,
 
-  // Email / SMTP
+  // Email / HTTP APIs & SMTP
+  RESEND_API_KEY: process.env.RESEND_API_KEY || "",
+  BREVO_API_KEY: process.env.BREVO_API_KEY || "",
   SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
   SMTP_PORT: Number(process.env.SMTP_PORT) || 587,
   SMTP_USER: process.env.SMTP_USER || "",
