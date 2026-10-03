@@ -89,6 +89,11 @@ export const sendTicketEmail = async (
 ): Promise<void> => {
   const { to, subject, html, ticketNumber, ticketId } = options;
 
+  if (to.endsWith("@bitdesk.dev") || to.endsWith("@bitdesk.local")) {
+    // Avoid bouncebacks for fictional demo domains
+    return;
+  }
+
   const fromEmailMatch = (appConfig.EMAIL_FROM || "").match(/<([^>]+)>/) || [
     null,
     (appConfig.EMAIL_FROM || "").trim(),
@@ -400,6 +405,10 @@ export const sendOtpEmail = (
   otp: string,
   purpose: string = "Verification",
 ) => {
+  if (email.endsWith("@bitdesk.dev") || email.endsWith("@bitdesk.local")) {
+    return;
+  }
+
   const subject = `Your BitDesk Verification Code: ${otp}`;
   const html = renderOtpEmail(name, otp, purpose);
 
