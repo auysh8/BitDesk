@@ -89,33 +89,6 @@ const resetApp = async () => {
         isVerified: true,
         isApproved: true,
       },
-      {
-        name: "Demo Admin",
-        email: "admin@bitdesk.dev",
-        phone: "+1000000001",
-        password: DEFAULT_PASSWORD,
-        role: "admin",
-        isVerified: true,
-        isApproved: true,
-      },
-      {
-        name: "Demo Agent",
-        email: "agent@bitdesk.dev",
-        phone: "+1000000002",
-        password: DEFAULT_PASSWORD,
-        role: "agent",
-        isVerified: true,
-        isApproved: true,
-      },
-      {
-        name: "Demo Customer",
-        email: "customer@bitdesk.dev",
-        phone: "+1000000003",
-        password: DEFAULT_PASSWORD,
-        role: "customer",
-        isVerified: true,
-        isApproved: true,
-      },
     ];
 
     for (const u of usersData) {
