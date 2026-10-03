@@ -4,13 +4,22 @@ import {
   getUsers,
   approveUser,
   updateUserRole,
+  getStaffMembers,
 } from "./user.controller.js";
 import { authenticate, authorizeRoles } from "../../middleware/auth.js";
 import { USER_ROLES } from "../../constants/roles.js";
 
 const router = Router();
 
-// All user management routes require Admin privileges
+// Active staff members list for ticket assignments (Admin & Agent)
+router.get(
+  "/staff",
+  authenticate,
+  authorizeRoles(USER_ROLES.ADMIN, USER_ROLES.AGENT),
+  getStaffMembers
+);
+
+// All admin user management routes require Admin privileges
 router.use(authenticate, authorizeRoles(USER_ROLES.ADMIN));
 
 router.get("/", getUsers);

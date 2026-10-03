@@ -23,6 +23,11 @@ export const TicketDetail: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const isAdmin = user?.role === "admin";
+  const isAgent = user?.role === "agent";
+  const isStaff = isAdmin || isAgent;
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // Reply Composer State
   const [replyText, setReplyText] = useState("");
@@ -50,7 +55,26 @@ export const TicketDetail: React.FC = () => {
 
   useEffect(() => {
     fetchTicketData();
-  }, [ticketId]);
+    if (isAdmin) {
+      axiosClient
+        .get("/users/staff")
+        .then((res) => setStaffMembers(res.data.data || []))
+        .catch((err) => console.error("Failed to load staff members", err));
+    }
+  }, [ticketId, isAdmin]);
+
+  const handleAssignTicket = async (agentId: string) => {
+    if (!agentId) return;
+    setIsAssigning(true);
+    try {
+      await axiosClient.post(`/tickets/${ticketId}/assign`, { agentId });
+      await fetchTicketData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to assign ticket");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +116,6 @@ export const TicketDetail: React.FC = () => {
   if (!ticket) {
     return <div className="p-8 text-sm text-red-500">Ticket not found.</div>;
   }
-
-  const isStaff = user?.role === "agent" || user?.role === "admin";
 
   return (
     <div className="space-y-6">
@@ -169,9 +191,65 @@ export const TicketDetail: React.FC = () => {
             <span className="font-semibold text-slate-700">Requester: </span>
             {ticket.requesterId?.name} ({ticket.requesterEmail})
           </div>
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-700">Assigned To: </span>
-            {ticket.assignedTo ? ticket.assignedTo.name : "Unassigned"}
+            {isAdmin ? (
+              /* Admin: Full Reassign Dropdown + Quick Assign to Me */
+              <div className="flex items-center gap-2">
+                <select
+                  value={ticket.assignedTo?._id || ""}
+                  onChange={(e) => handleAssignTicket(e.target.value)}
+                  disabled={isAssigning}
+                  className="rounded-md border border-slate-300 bg-white py-1 px-2.5 text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {ticket.assignedTo ? "Reassign to..." : "Select Assignee..."}
+                  </option>
+                  {staffMembers.map((staff) => (
+                    <option key={staff._id} value={staff._id}>
+                      {staff.name} ({staff.role})
+                    </option>
+                  ))}
+                </select>
+
+                {ticket.assignedTo?._id !== user?._id && (
+                  <button
+                    onClick={() => handleAssignTicket(user!._id)}
+                    disabled={isAssigning}
+                    className="rounded bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 border border-blue-200 disabled:opacity-50 transition"
+                  >
+                    Assign to Me
+                  </button>
+                )}
+              </div>
+            ) : isAgent ? (
+              /* Agent: Claim unassigned ticket OR see who owns it */
+              <div className="flex items-center gap-2">
+                {!ticket.assignedTo ? (
+                  <>
+                    <span className="text-amber-600 font-medium">Unassigned</span>
+                    <button
+                      onClick={() => handleAssignTicket(user!._id)}
+                      disabled={isAssigning}
+                      className="rounded bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 border border-emerald-200 disabled:opacity-50 transition"
+                    >
+                      {isAssigning ? "Claiming..." : "Claim Ticket"}
+                    </button>
+                  </>
+                ) : ticket.assignedTo?._id === user?._id ? (
+                  <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 border border-blue-200">
+                    Assigned to You
+                  </span>
+                ) : (
+                  <span className="text-slate-700 font-medium">
+                    {ticket.assignedTo?.name || "Assigned"}
+                  </span>
+                )}
+              </div>
+            ) : (
+              /* Customer: Static Read-Only */
+              <span>{ticket.assignedTo ? ticket.assignedTo.name : "Unassigned"}</span>
+            )}
           </div>
           <div>
             <span className="font-semibold text-slate-700">Created: </span>

@@ -102,3 +102,21 @@ export const updateUserRole = asyncHandler(
     );
   }
 );
+
+/**
+ * Get active staff members (Agents & Admins) for ticket assignments
+ * GET /api/users/staff
+ */
+export const getStaffMembers = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const staff = await User.find({
+      role: { $in: [USER_ROLES.AGENT, USER_ROLES.ADMIN] },
+      isApproved: true,
+    })
+      .select("_id name email role")
+      .sort({ name: 1 });
+
+    return sendResponse(res, 200, "Staff members fetched successfully", staff);
+  }
+);
+

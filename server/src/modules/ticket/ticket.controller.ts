@@ -326,6 +326,25 @@ export const assignTicket = asyncHandler(
       throw new ApiError(400, "Assigned user must have an Agent or Admin role");
     }
 
+    // Hybrid Rule: Agents can only claim tickets for themselves and cannot reassign tickets already owned by others
+    if (actor.role === USER_ROLES.AGENT) {
+      if (agentId !== actor._id.toString()) {
+        throw new ApiError(
+          403,
+          "Support agents can only claim tickets for themselves. Only an administrator can reassign tickets to other staff members."
+        );
+      }
+      if (
+        ticket.assignedTo &&
+        ticket.assignedTo.toString() !== actor._id.toString()
+      ) {
+        throw new ApiError(
+          403,
+          "This ticket is already assigned to another staff member. Only an administrator can reassign it."
+        );
+      }
+    }
+
     const oldAssignee = ticket.assignedTo
       ? ticket.assignedTo.toString()
       : "Unassigned";
