@@ -6,6 +6,7 @@ import {
   loginPassword,
   requestLoginOtp,
   verifyLoginOtp,
+  resendOtp,
   refreshAccessToken,
   logout,
   forgotPassword,
@@ -14,6 +15,7 @@ import {
 } from "./auth.controller.js";
 import { validate } from "../../middleware/validate.js";
 import { authenticate } from "../../middleware/auth.js";
+import { authRateLimiter } from "../../middleware/rateLimiter.js";
 import {
   registerSchema,
   loginPasswordSchema,
@@ -25,9 +27,13 @@ import {
 
 const router = Router();
 
+// Apply auth rate limiter across sensitive auth attempts
+router.use(authRateLimiter);
+
 // Public Authentication Endpoints
 router.post("/register", validate(registerSchema), register);
 router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
+router.post("/resend-otp", resendOtp);
 router.post("/login-password", validate(loginPasswordSchema), loginPassword);
 router.post("/login-otp", validate(requestOtpSchema), requestLoginOtp);
 router.post("/verify-login-otp", validate(verifyOtpSchema), verifyLoginOtp);

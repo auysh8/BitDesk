@@ -22,6 +22,11 @@ import {
   notifyStatusChanged,
   notifyTicketAssigned,
 } from "../email/emailService.js";
+import {
+  emitTicketMessage,
+  emitTicketStatusChanged,
+  emitTicketAssigned,
+} from "../../socket.js";
 
 /**
  * 1. Create a new Ticket
@@ -232,6 +237,8 @@ export const addTicketMessage = asyncHandler(
 
     ticket.lastMessageAt = new Date();
 
+    emitTicketMessage(ticket._id.toString(), message);
+
     // Auto-reopen if ticket was resolved or closed and customer sends a public reply
     if (
       user.role === USER_ROLES.CUSTOMER &&
@@ -249,6 +256,12 @@ export const addTicketMessage = asyncHandler(
         oldValue: oldStatus,
         newValue: TICKET_STATUS.REOPENED,
         metadata: { reason: "Customer replied to resolved/closed ticket" },
+      });
+
+      emitTicketStatusChanged(ticket._id.toString(), {
+        ticket,
+        oldStatus,
+        newStatus: TICKET_STATUS.REOPENED,
       });
     }
 
@@ -398,6 +411,8 @@ export const assignTicket = asyncHandler(
       metadata: { agentId: agent._id, agentEmail: agent.email },
     });
 
+    emitTicketAssigned(ticket._id.toString(), { ticket, agent });
+
     return sendResponse(res, 200, `Ticket assigned to ${agent.name}`, ticket);
   },
 );
@@ -435,6 +450,12 @@ export const resolveTicket = asyncHandler(
       action: "STATUS_CHANGED",
       oldValue: oldStatus,
       newValue: TICKET_STATUS.RESOLVED,
+    });
+
+    emitTicketStatusChanged(ticket._id.toString(), {
+      ticket,
+      oldStatus,
+      newStatus: TICKET_STATUS.RESOLVED,
     });
 
     return sendResponse(res, 200, "Ticket marked as resolved", ticket);
@@ -484,6 +505,12 @@ export const reopenTicket = asyncHandler(
       newValue: TICKET_STATUS.REOPENED,
     });
 
+    emitTicketStatusChanged(ticket._id.toString(), {
+      ticket,
+      oldStatus,
+      newStatus: TICKET_STATUS.REOPENED,
+    });
+
     return sendResponse(res, 200, "Ticket reopened successfully", ticket);
   },
 );
@@ -529,6 +556,12 @@ export const closeTicket = asyncHandler(async (req: Request, res: Response) => {
     newValue: TICKET_STATUS.CLOSED,
   });
 
+  emitTicketStatusChanged(ticket._id.toString(), {
+    ticket,
+    oldStatus,
+    newStatus: TICKET_STATUS.CLOSED,
+  });
+
   return sendResponse(res, 200, "Ticket closed successfully", ticket);
 });
 
@@ -565,13 +598,13 @@ export const getTicketActivity = asyncHandler(
 );
 
 /**
- * Update Ticket Metadata (Priority, Category)
+ * Update Ticket Metadata (Status, Priority, Category)
  * PATCH /api/tickets/:ticketId
  */
 export const updateTicket = asyncHandler(
   async (req: Request, res: Response) => {
     const { ticketId } = req.params;
-    const { priority, category } = req.body;
+    const { priority, category, status } = req.body;
     const user = req.user!;
 
     const ticket = await Ticket.findById(ticketId);
@@ -579,11 +612,11 @@ export const updateTicket = asyncHandler(
       throw new ApiError(404, "Ticket not found");
     }
 
-    // Customers cannot modify priority/category once created
+    // Customers cannot modify priority/category/status via PATCH
     if (user.role === USER_ROLES.CUSTOMER) {
       throw new ApiError(
         403,
-        "Only support staff or admins can update ticket metadata",
+        "Only support staff or admins can update ticket details",
       );
     }
 
@@ -593,7 +626,7 @@ export const updateTicket = asyncHandler(
       ticket.category = validCategory._id as any;
     }
 
-    if (priority) {
+    if (priority && priority !== ticket.priority) {
       const oldPriority = ticket.priority;
       ticket.priority = priority;
 
@@ -604,6 +637,37 @@ export const updateTicket = asyncHandler(
         action: "PRIORITY_CHANGED",
         oldValue: oldPriority,
         newValue: priority,
+      });
+    }
+
+    if (status && status !== ticket.status) {
+      const oldStatus = ticket.status;
+      ticket.status = status;
+
+      if (status === TICKET_STATUS.RESOLVED) {
+        ticket.resolvedAt = new Date();
+      } else if (status === TICKET_STATUS.CLOSED) {
+        ticket.closedAt = new Date();
+      } else if (status === TICKET_STATUS.REOPENED) {
+        ticket.resolvedAt = null;
+        ticket.closedAt = null;
+      }
+
+      await TicketActivity.create({
+        ticketId: ticket._id,
+        actorId: user._id,
+        actorEmail: user.email,
+        action: "STATUS_CHANGED",
+        oldValue: oldStatus,
+        newValue: status,
+      });
+
+      notifyStatusChanged(ticket, ticket.requesterEmail, oldStatus, status);
+
+      emitTicketStatusChanged(ticket._id.toString(), {
+        ticket,
+        oldStatus,
+        newStatus: status,
       });
     }
 

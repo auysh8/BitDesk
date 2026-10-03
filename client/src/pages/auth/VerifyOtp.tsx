@@ -1,9 +1,9 @@
 // client/src/pages/auth/VerifyOtp.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axiosClient from "../../api/axiosClient";
-import { KeyRound, ArrowRight, AlertCircle } from "lucide-react";
+import { KeyRound, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
 
 export const VerifyOtp: React.FC = () => {
   const location = useLocation();
@@ -15,10 +15,24 @@ export const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Resend OTP Cooldown
+  const [resendCooldown, setResendCooldown] = useState(60);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     setIsLoading(true);
 
     try {
@@ -51,6 +65,23 @@ export const VerifyOtp: React.FC = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || !email) return;
+    setIsResending(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await axiosClient.post("/auth/resend-otp", { email });
+      setSuccessMsg(res.data.message || "A new OTP code has been dispatched.");
+      setResendCooldown(60);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to resend verification code.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl border border-slate-100">
@@ -70,6 +101,12 @@ export const VerifyOtp: React.FC = () => {
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 border border-emerald-200">
+            {successMsg}
           </div>
         )}
 
@@ -101,6 +138,25 @@ export const VerifyOtp: React.FC = () => {
               placeholder="123456"
               className="mt-1 w-full rounded-lg border border-slate-300 py-3 px-4 text-center font-mono text-2xl tracking-widest text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+            <span>Didn't receive the code?</span>
+            {resendCooldown > 0 ? (
+              <span className="font-medium text-slate-400">
+                Resend in {resendCooldown}s
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isResending || !email}
+                className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3 w-3 ${isResending ? "animate-spin" : ""}`} />
+                Resend Code
+              </button>
+            )}
           </div>
 
           <button

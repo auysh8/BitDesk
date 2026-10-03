@@ -1,21 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
-import { Search, PlusCircle } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { Search, PlusCircle, ArrowUpDown } from "lucide-react";
 
 export const TicketList: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Quick Preset Tabs
+  const [activeTab, setActiveTab] = useState<"all" | "mine" | "unassigned">("all");
 
   // Filters
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [priority, setPriority] = useState("");
   const [category, setCategory] = useState("");
+  const [sortOption, setSortOption] = useState("newest");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  const isStaff = user?.role === "admin" || user?.role === "agent";
 
   const fetchCategories = async () => {
     try {
@@ -34,6 +42,31 @@ export const TicketList: React.FC = () => {
       if (status) params.append("status", status);
       if (priority) params.append("priority", priority);
       if (category) params.append("category", category);
+
+      // Handle Quick Preset Tab
+      if (isStaff) {
+        if (activeTab === "mine" && user?._id) {
+          params.append("assignedTo", user._id);
+        } else if (activeTab === "unassigned") {
+          params.append("assignedTo", "unassigned");
+        }
+      }
+
+      // Handle Sorting
+      if (sortOption === "newest") {
+        params.append("sortBy", "createdAt");
+        params.append("sortOrder", "desc");
+      } else if (sortOption === "oldest") {
+        params.append("sortBy", "createdAt");
+        params.append("sortOrder", "asc");
+      } else if (sortOption === "updated") {
+        params.append("sortBy", "lastMessageAt");
+        params.append("sortOrder", "desc");
+      } else if (sortOption === "priority") {
+        params.append("sortBy", "priority");
+        params.append("sortOrder", "desc");
+      }
+
       params.append("page", page.toString());
       params.append("limit", "10");
 
@@ -53,7 +86,7 @@ export const TicketList: React.FC = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, [search, status, priority, category, page]);
+  }, [search, status, priority, category, activeTab, sortOption, page]);
 
   const getStatusBadge = (st: string) => {
     const map: Record<string, string> = {
@@ -109,22 +142,73 @@ export const TicketList: React.FC = () => {
         </Link>
       </div>
 
+      {/* Quick Preset Tabs (Staff & Admin) */}
+      {isStaff && (
+        <div className="flex border-b border-slate-200 text-sm font-medium">
+          <button
+            onClick={() => {
+              setActiveTab("all");
+              setPage(1);
+            }}
+            className={`border-b-2 px-4 py-2.5 transition-colors ${
+              activeTab === "all"
+                ? "border-blue-600 text-blue-600 font-semibold"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            All Tickets
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("mine");
+              setPage(1);
+            }}
+            className={`border-b-2 px-4 py-2.5 transition-colors ${
+              activeTab === "mine"
+                ? "border-blue-600 text-blue-600 font-semibold"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Assigned to Me
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("unassigned");
+              setPage(1);
+            }}
+            className={`border-b-2 px-4 py-2.5 transition-colors ${
+              activeTab === "unassigned"
+                ? "border-blue-600 text-blue-600 font-semibold"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Unassigned
+          </button>
+        </div>
+      )}
+
       {/* Search and Filters Bar */}
-      <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:grid-cols-4">
-        <div className="relative">
+      <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-5">
+        <div className="relative lg:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search number or subject..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-blue-600 focus:outline-none"
           />
         </div>
 
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
         >
           <option value="">All Statuses</option>
@@ -138,7 +222,10 @@ export const TicketList: React.FC = () => {
 
         <select
           value={priority}
-          onChange={(e) => setPriority(e.target.value)}
+          onChange={(e) => {
+            setPriority(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
         >
           <option value="">All Priorities</option>
@@ -150,7 +237,10 @@ export const TicketList: React.FC = () => {
 
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => {
+            setCategory(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
         >
           <option value="">All Categories</option>
@@ -160,6 +250,23 @@ export const TicketList: React.FC = () => {
             </option>
           ))}
         </select>
+
+        <div className="flex items-center gap-1.5">
+          <ArrowUpDown className="h-4 w-4 text-slate-400" />
+          <select
+            value={sortOption}
+            onChange={(e) => {
+              setSortOption(e.target.value);
+              setPage(1);
+            }}
+            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="updated">Recently Updated</option>
+            <option value="priority">Priority</option>
+          </select>
+        </div>
       </div>
 
       {/* Tickets Table */}
@@ -173,26 +280,21 @@ export const TicketList: React.FC = () => {
                 <th className="px-6 py-4">Priority</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Requester</th>
+                <th className="px-6 py-4">Assigned To</th>
                 <th className="px-6 py-4">Updated</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-8 text-center text-slate-400"
-                  >
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
                     Loading tickets...
                   </td>
                 </tr>
               ) : tickets.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-8 text-center text-slate-400"
-                  >
-                    No tickets found matching your filters.
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
+                    No tickets found matching current filters.
                   </td>
                 </tr>
               ) : (
@@ -200,33 +302,42 @@ export const TicketList: React.FC = () => {
                   <tr
                     key={t._id}
                     onClick={() => navigate(`/tickets/${t._id}`)}
-                    className="cursor-pointer hover:bg-slate-50 transition"
+                    className="cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <span className="font-mono text-xs font-semibold text-blue-600">
+                      <div className="font-mono text-xs font-semibold text-blue-600">
                         {t.ticketNumber}
-                      </span>
-                      <p className="font-medium text-slate-900">{t.subject}</p>
+                      </div>
+                      <div className="font-medium text-slate-900 line-clamp-1">
+                        {t.subject}
+                      </div>
                     </td>
                     <td className="px-6 py-4">{getStatusBadge(t.status)}</td>
-                    <td className="px-6 py-4">
-                      {getPriorityBadge(t.priority)}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-700">
+                    <td className="px-6 py-4">{getPriorityBadge(t.priority)}</td>
+                    <td className="px-6 py-4 text-slate-700">
                       {t.category?.name || "General"}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-slate-800">
-                        {t.requesterId?.name}
-                      </p>
-                      <p className="text-xs text-slate-400">
+                      <div className="font-medium text-slate-900">
+                        {t.requesterId?.name || "Customer"}
+                      </div>
+                      <div className="text-xs text-slate-400">
                         {t.requesterEmail}
-                      </p>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-xs text-slate-400">
-                      {new Date(
-                        t.lastMessageAt || t.createdAt,
-                      ).toLocaleDateString()}
+                    <td className="px-6 py-4">
+                      {t.assignedTo ? (
+                        <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                          {t.assignedTo.name}
+                        </span>
+                      ) : (
+                        <span className="text-xs italic text-slate-400">
+                          Unassigned
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
+                      {new Date(t.lastMessageAt || t.updatedAt).toLocaleDateString()}
                     </td>
                   </tr>
                 ))
@@ -235,26 +346,30 @@ export const TicketList: React.FC = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-slate-200 px-6 py-3 text-sm">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-            className="rounded border border-slate-300 px-3 py-1 font-medium disabled:opacity-40"
-          >
-            Previous
-          </button>
-          <span className="text-slate-500">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage(page + 1)}
-            className="rounded border border-slate-300 px-3 py-1 font-medium disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-3">
+            <span className="text-xs text-slate-500">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

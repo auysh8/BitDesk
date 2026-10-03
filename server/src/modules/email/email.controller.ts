@@ -15,6 +15,7 @@ import {
 } from "../../constants/ticket.js";
 import { USER_ROLES } from "../../constants/roles.js";
 import { notifyTicketReply } from "./emailService.js";
+import { emitTicketMessage, emitTicketStatusChanged } from "../../socket.js";
 
 /**
  * Strips quoted history from reply emails (e.g. "On Oct 1 ... wrote:" or lines starting with ">")
@@ -171,6 +172,8 @@ export const handleInboundEmail = asyncHandler(
 
     ticket.lastMessageAt = new Date();
 
+    emitTicketMessage(ticket._id.toString(), ticketMessage);
+
     // 7. Auto-Reopen if resolved/closed and email was sent by customer
     if (
       senderRole === USER_ROLES.CUSTOMER &&
@@ -188,6 +191,12 @@ export const handleInboundEmail = asyncHandler(
         oldValue: oldStatus,
         newValue: TICKET_STATUS.REOPENED,
         metadata: { reason: "Inbound email reply received on resolved ticket" },
+      });
+
+      emitTicketStatusChanged(ticket._id.toString(), {
+        ticket,
+        oldStatus,
+        newStatus: TICKET_STATUS.REOPENED,
       });
     }
 

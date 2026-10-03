@@ -1,0 +1,513 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "BitDesk Enterprise Ticketing & 2-Way Email Support API",
+    "version": "1.0.0",
+    "description": "Production REST API for BitDesk ticketing platform with role-based access control (Customer, Agent, Admin), two-way email synchronization, and real-time collaboration."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://bitdesk.onrender.com",
+      "description": "Production Render Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT Access Token (retrieved upon login or OTP verification)"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string", "enum": ["customer", "agent", "admin"] },
+          "isVerified": { "type": "boolean" },
+          "isApproved": { "type": "boolean" },
+          "isActive": { "type": "boolean" }
+        }
+      },
+      "Ticket": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "ticketNumber": { "type": "string", "example": "TKT-2026-000001" },
+          "subject": { "type": "string" },
+          "description": { "type": "string" },
+          "status": { "type": "string", "enum": ["Open", "In Progress", "Pending", "Resolved", "Closed", "Reopened"] },
+          "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Urgent"] },
+          "category": { "type": "string" },
+          "requesterId": { "type": "string" },
+          "requesterEmail": { "type": "string" },
+          "assignedTo": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "ticketId": { "type": "string" },
+          "senderEmail": { "type": "string" },
+          "senderRole": { "type": "string" },
+          "type": { "type": "string", "enum": ["public", "internal"] },
+          "body": { "type": "string" },
+          "source": { "type": "string", "enum": ["web", "email"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "API Health Check",
+        "responses": {
+          "200": { "description": "API status is healthy" }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user or staff member",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Aayush Sharma" },
+                  "email": { "type": "string", "example": "user@example.com" },
+                  "password": { "type": "string", "example": "SecurePass123!" },
+                  "phone": { "type": "string", "example": "+919876543210" },
+                  "role": { "type": "string", "enum": ["customer", "agent", "admin"], "default": "customer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created. OTP sent to email." }
+        }
+      }
+    },
+    "/api/auth/verify-otp": {
+      "post": {
+        "summary": "Verify email registration OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": { "type": "string" },
+                  "otp": { "type": "string", "example": "123456" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Email verified successfully" }
+        }
+      }
+    },
+    "/api/auth/login-password": {
+      "post": {
+        "summary": "Authenticate with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@bitdesk.dev" },
+                  "password": { "type": "string", "example": "Password123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful, tokens returned" }
+        }
+      }
+    },
+    "/api/auth/login-otp": {
+      "post": {
+        "summary": "Request a passwordless login OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login OTP dispatched" }
+        }
+      }
+    },
+    "/api/auth/verify-login-otp": {
+      "post": {
+        "summary": "Verify login OTP and issue session tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": { "type": "string" },
+                  "otp": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP verified, logged in" }
+        }
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "summary": "Rotate refresh token and issue new access token",
+        "responses": {
+          "200": { "description": "Token refreshed" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Revoke session and clear cookies",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Successfully logged out" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get authenticated user profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Current user data returned" }
+        }
+      }
+    },
+    "/api/tickets": {
+      "get": {
+        "summary": "List tickets with filtering, search, and pagination",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "priority", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "assignedToMe", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "unassigned", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "enum": ["newest", "oldest", "priority", "updated"] } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated tickets list" }
+        }
+      },
+      "post": {
+        "summary": "Create a new support ticket",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["subject", "description", "category"],
+                "properties": {
+                  "subject": { "type": "string", "example": "Unable to access billing dashboard" },
+                  "description": { "type": "string", "example": "Every time I click the invoices tab, a 500 error occurs." },
+                  "category": { "type": "string", "example": "Billing & Invoicing" },
+                  "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Urgent"], "default": "Medium" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Ticket created successfully" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}": {
+      "get": {
+        "summary": "Get ticket details by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Ticket details returned" }
+        }
+      },
+      "patch": {
+        "summary": "Update ticket priority, category, or status",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "enum": ["Open", "In Progress", "Pending", "Resolved", "Closed", "Reopened"] },
+                  "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Urgent"] },
+                  "category": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ticket updated" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/messages": {
+      "get": {
+        "summary": "Fetch message thread for a ticket",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Ticket conversation messages" }
+        }
+      },
+      "post": {
+        "summary": "Post a public reply or internal note",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["body"],
+                "properties": {
+                  "body": { "type": "string", "example": "Thank you for the update. We are investigating." },
+                  "type": { "type": "string", "enum": ["public", "internal"], "default": "public" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message posted and broadcasted" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/assign": {
+      "post": {
+        "summary": "Assign or reassign ticket to an Agent or Admin",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["agentId"],
+                "properties": {
+                  "agentId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ticket assigned successfully" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/resolve": {
+      "post": {
+        "summary": "Mark ticket as Resolved",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Ticket resolved" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/close": {
+      "post": {
+        "summary": "Close ticket",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Ticket closed" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/reopen": {
+      "post": {
+        "summary": "Reopen ticket",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Ticket reopened" }
+        }
+      }
+    },
+    "/api/tickets/{ticketId}/activity": {
+      "get": {
+        "summary": "Get complete audit activity timeline for ticket",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Activity history returned" }
+        }
+      }
+    },
+    "/api/dashboard/summary": {
+      "get": {
+        "summary": "Fetch aggregated ticket metrics for dashboard",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Counts for total, open, inProgress, pending, resolved, closed, reopened, unassigned" }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "summary": "List active ticket categories",
+        "responses": {
+          "200": { "description": "Category list returned" }
+        }
+      },
+      "post": {
+        "summary": "Create new category (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Category created" }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "List system users and staff accounts (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User list returned" }
+        }
+      }
+    },
+    "/api/users/{id}/approve": {
+      "patch": {
+        "summary": "Approve pending agent/admin registration (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Staff account approved" }
+        }
+      }
+    },
+    "/api/email/inbound": {
+      "post": {
+        "summary": "Inbound email webhook (Google Apps Script / Provider)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["from", "subject", "body"],
+                "properties": {
+                  "from": { "type": "string" },
+                  "to": { "type": "string" },
+                  "subject": { "type": "string" },
+                  "body": { "type": "string" },
+                  "messageId": { "type": "string" },
+                  "inReplyTo": { "type": "string" },
+                  "references": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Email reply processed" }
+        }
+      }
+    }
+  }
+}

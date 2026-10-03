@@ -431,3 +431,36 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     user: req.user,
   });
 });
+
+/**
+ * 11. Resend Verification OTP
+ * POST /api/auth/resend-otp
+ */
+export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    throw new ApiError(400, "Email address is required.");
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User account not found.");
+  }
+
+  if (user.isVerified) {
+    return sendResponse(res, 200, "Your account is already verified. Please log in.");
+  }
+
+  const { otp, otpHash, otpExpiresAt } = generateOtp();
+  user.otpHash = otpHash;
+  user.otpExpiresAt = otpExpiresAt;
+  await user.save();
+
+  console.log(`\n========================================`);
+  console.log(`[AUTH] Resent Verification OTP for ${email}: ${otp}`);
+  console.log(`========================================\n`);
+
+  sendOtpEmail(email, user.name, otp, "Account Verification");
+
+  return sendResponse(res, 200, "A fresh verification code has been dispatched to your email.");
+});

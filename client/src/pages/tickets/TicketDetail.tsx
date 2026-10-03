@@ -12,7 +12,14 @@ import {
   CheckCircle,
   RotateCcw,
   XCircle,
+  Clock,
+  PlayCircle,
 } from "lucide-react";
+import {
+  getSocket,
+  joinTicketRoom,
+  leaveTicketRoom,
+} from "../../api/socket";
 
 export const TicketDetail: React.FC = () => {
   const { ticketId } = useParams();
@@ -60,6 +67,49 @@ export const TicketDetail: React.FC = () => {
         .get("/users/staff")
         .then((res) => setStaffMembers(res.data.data || []))
         .catch((err) => console.error("Failed to load staff members", err));
+    }
+
+    if (ticketId) {
+      joinTicketRoom(ticketId);
+      const socket = getSocket();
+
+      const onMessage = (newMsg: any) => {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === newMsg._id)) return prev;
+          return [...prev, newMsg];
+        });
+      };
+
+      const onStatus = (data: any) => {
+        if (data.ticket) {
+          setTicket((prev: any) => ({ ...prev, ...data.ticket }));
+        }
+        axiosClient
+          .get(`/tickets/${ticketId}/activity`)
+          .then((res) => setActivities(res.data.data || []))
+          .catch(() => {});
+      };
+
+      const onAssign = (data: any) => {
+        if (data.ticket) {
+          setTicket((prev: any) => ({ ...prev, ...data.ticket }));
+        }
+        axiosClient
+          .get(`/tickets/${ticketId}/activity`)
+          .then((res) => setActivities(res.data.data || []))
+          .catch(() => {});
+      };
+
+      socket.on("ticket:message_created", onMessage);
+      socket.on("ticket:status_changed", onStatus);
+      socket.on("ticket:assigned", onAssign);
+
+      return () => {
+        leaveTicketRoom(ticketId);
+        socket.off("ticket:message_created", onMessage);
+        socket.off("ticket:status_changed", onStatus);
+        socket.off("ticket:assigned", onAssign);
+      };
     }
   }, [ticketId, isAdmin]);
 
@@ -119,6 +169,15 @@ export const TicketDetail: React.FC = () => {
     }
   };
 
+  const handleUpdateStatus = async (newStatus: string) => {
+    try {
+      await axiosClient.patch(`/tickets/${ticketId}`, { status: newStatus });
+      await fetchTicketData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || `Failed to update status`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8 text-sm text-slate-500">
@@ -145,6 +204,32 @@ export const TicketDetail: React.FC = () => {
 
         {/* Lifecycle Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Status Changers for Staff */}
+          {isStaff &&
+            ticket.status !== "resolved" &&
+            ticket.status !== "closed" && (
+              <>
+                {ticket.status !== "in_progress" && (
+                  <button
+                    onClick={() => handleUpdateStatus("in_progress")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                  >
+                    <PlayCircle className="h-3.5 w-3.5" />
+                    In Progress
+                  </button>
+                )}
+                {ticket.status !== "pending" && (
+                  <button
+                    onClick={() => handleUpdateStatus("pending")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                  >
+                    <Clock className="h-3.5 w-3.5" />
+                    Pending
+                  </button>
+                )}
+              </>
+            )}
+
           {ticket.status !== "resolved" &&
             ticket.status !== "closed" &&
             isStaff && (

@@ -3,13 +3,18 @@ import express, {
   type Request,
   type Response,
 } from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
 import appConfig from "./config/config.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { ApiError } from "./utils/ApiError.js";
 import { sendResponse } from "./utils/apiResponse.js";
+import { globalRateLimiter } from "./middleware/rateLimiter.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import categoryRoutes from "./modules/category/category.routes.js";
 import ticketRoutes from "./modules/ticket/ticket.routes.js";
@@ -17,9 +22,14 @@ import emailRoutes from "./modules/email/email.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app: Application = express();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Allows Swagger UI to load its styles & assets
+}));
 
 const configuredOrigins = (appConfig.CORS_ORIGIN || "")
   .split(",")
@@ -55,8 +65,21 @@ app.use(
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-
 app.use(cookieParser());
+
+// Apply global rate limiting across all API routes
+app.use("/api", globalRateLimiter);
+
+// Load OpenAPI / Swagger documentation
+try {
+  const swaggerPath = path.join(__dirname, "docs", "swagger.json");
+  if (fs.existsSync(swaggerPath)) {
+    const swaggerDoc = JSON.parse(fs.readFileSync(swaggerPath, "utf-8"));
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+  }
+} catch (err) {
+  console.warn("[Swagger] Could not load API documentation:", err);
+}
 
 app.get("/api/health", (_req: Request, res: Response) => {
   return sendResponse(res, 200, "BitDesk API is running smoothly", {
