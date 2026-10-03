@@ -56,35 +56,6 @@ BitDesk is a full-stack customer support platform built on the MERN stack. It br
 
 ---
 
-## 🏗 Architecture & 2-Way Email Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer as 👤 Customer (auysh1652@gmail.com)
-    participant Gmail as 📬 Gmail Server
-    participant Script as ⚙️ Apps Script Relay
-    participant BitDesk as 🖥️ BitDesk Server (Render)
-    actor Agent as 🧑‍💼 Agent (auysh1993@gmail.com)
-
-    Note over Customer,BitDesk: 1. Ticket Creation & Outbound Alert
-    Customer->>BitDesk: Creates Ticket on Web (or via Email)
-    BitDesk->>Script: Dispatches Ticket Confirmation & Admin Alert (HTTPS)
-    Script->>Gmail: GmailApp.sendEmail()
-    Gmail-->>Customer: Delivers Confirmation to Customer Inbox
-    Gmail-->>Agent: Delivers New Ticket Notification to Staff
-
-    Note over Customer,BitDesk: 2. Inbound Customer Reply via Email
-    Customer->>Gmail: Replies directly in Gmail ("Help me with my order")
-    Gmail->>Script: Scheduled Inbound Trigger picks up unread reply
-    Script->>BitDesk: POST /api/email/inbound
-    BitDesk->>BitDesk: Strips quoted headers & appends to ticket with [EMAIL] badge
-    BitDesk->>Script: Cross-relays customer response to Agent
-    Script->>Agent: Agent receives email notification of reply
-```
-
----
-
 ## 🛠 Tech Stack
 
 | Layer | Technologies |
