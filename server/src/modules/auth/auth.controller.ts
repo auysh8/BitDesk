@@ -6,6 +6,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { sendResponse } from "../../utils/apiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateOtp, verifyOtpHash } from "../../utils/otp.js";
+import { USER_ROLES } from "../../constants/roles.js";
 
 // Cookie options for secure storage
 const getCookieOptions = (): CookieOptions => ({
@@ -69,14 +70,19 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // Generate 6-digit OTP for verification
   const { otp, otpHash, otpExpiresAt } = generateOtp();
 
+  const requestedRole = role || USER_ROLES.CUSTOMER;
+  // Customers are auto-approved; Agents and Admins require Admin approval
+  const isApproved = requestedRole === USER_ROLES.CUSTOMER;
+
   // Create user
   const user = await User.create({
     name,
     email,
     phone,
     password,
-    role: role || undefined,
+    role: requestedRole,
     isVerified: false,
+    isApproved,
     otpHash,
     otpExpiresAt,
   });
@@ -94,6 +100,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       userId: user._id,
       email: user.email,
       phone: user.phone,
+      role: user.role,
+      isApproved: user.isApproved,
     },
   );
 });
@@ -129,6 +137,26 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
   user.isVerified = true;
   user.otpHash = null;
   user.otpExpiresAt = null;
+  await user.save({ validateBeforeSave: false });
+
+  // If staff role is pending approval, do not issue login tokens yet
+  if (!user.isApproved) {
+    return sendResponse(
+      res,
+      200,
+      `Account verified! Since you registered as a ${user.role}, your account is pending administrator approval before you can sign in.`,
+      {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified,
+          isApproved: user.isApproved,
+        },
+      }
+    );
+  }
 
   return sendTokenResponse(
     user,
@@ -161,6 +189,13 @@ export const loginPassword = asyncHandler(
       throw new ApiError(
         403,
         "Please verify your account OTP before logging in.",
+      );
+    }
+
+    if (!user.isApproved) {
+      throw new ApiError(
+        403,
+        "Your staff account is currently pending administrator approval. Please wait for an admin to approve your account."
       );
     }
 
@@ -228,6 +263,13 @@ export const verifyLoginOtp = asyncHandler(
     user.isVerified = true;
     user.otpHash = null;
     user.otpExpiresAt = null;
+
+    if (!user.isApproved) {
+      throw new ApiError(
+        403,
+        "Your staff account is currently pending administrator approval."
+      );
+    }
 
     return sendTokenResponse(user, 200, res, "Logged in successfully via OTP.");
   },

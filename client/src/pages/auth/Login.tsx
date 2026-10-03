@@ -36,7 +36,11 @@ export const Login: React.FC = () => {
       login(accessToken, user);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid credentials.");
+      setError(
+        err.response?.data?.errors?.join(", ") ||
+          err.response?.data?.message ||
+          "Invalid credentials.",
+      );
     } finally {
       setIsLoading(false);
     }

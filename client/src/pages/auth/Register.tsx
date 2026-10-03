@@ -152,10 +152,15 @@ export const Register: React.FC = () => {
               onChange={(e) => setRole(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 py-2.5 px-3 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             >
-              <option value="customer">Customer (Raise tickets)</option>
-              <option value="agent">Support Agent (Handle tickets)</option>
-              <option value="admin">Administrator (Full control)</option>
+              <option value="customer">Customer (Raise & manage own tickets)</option>
+              <option value="agent">Support Agent (Requires Admin approval)</option>
+              <option value="admin">Administrator (Requires Admin approval)</option>
             </select>
+            {role !== "customer" && (
+              <p className="mt-1 text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                ⚠️ Staff accounts (Agent/Admin) require confirmation from an administrator before you can log in.
+              </p>
+            )}
           </div>
 
           <button

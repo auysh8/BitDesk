@@ -13,6 +13,7 @@ import TicketList from "./pages/tickets/TicketList";
 import CreateTicket from "./pages/tickets/CreateTicket";
 import TicketDetail from "./pages/tickets/TicketDetail";
 import CategoryManager from "./pages/categories/CategoryManager";
+import UserManager from "./pages/users/UserManager";
 
 export function App() {
   return (
@@ -34,9 +35,10 @@ export function App() {
               <Route path="/tickets/new" element={<CreateTicket />} />
               <Route path="/tickets/:ticketId" element={<TicketDetail />} />
 
-              {/* Admin-only Categories Route */}
+              {/* Admin-only Routes */}
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="/categories" element={<CategoryManager />} />
+                <Route path="/users" element={<UserManager />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

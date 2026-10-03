@@ -26,7 +26,10 @@ export const AppLayout: React.FC = () => {
       icon: Ticket,
     },
     ...(user?.role === "admin"
-      ? [{ name: "Categories", path: "/categories", icon: Tags }]
+      ? [
+          { name: "Categories", path: "/categories", icon: Tags },
+          { name: "Users & Staff", path: "/users", icon: ShieldCheck },
+        ]
       : []),
   ];
 
