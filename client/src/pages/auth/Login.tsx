@@ -283,11 +283,11 @@ export const Login: React.FC = () => {
         {/* Credentials / Testing Callout */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs text-slate-600">
           <div className="flex items-center justify-between font-semibold text-slate-800">
-            <span>Primary Admin Account</span>
+            <span>Demo Admin Account</span>
             <button
               type="button"
               onClick={() => {
-                setEmail("pankajbhandari0714@gmail.com");
+                setEmail("admin@bitdesk.dev");
                 setPassword("Password123!");
                 setLoginMethod("password");
               }}
@@ -297,11 +297,11 @@ export const Login: React.FC = () => {
             </button>
           </div>
           <div className="mt-1 font-mono text-[11px] text-slate-700 bg-white border border-slate-200 rounded p-1.5 select-all">
-            pankajbhandari0714@gmail.com &bull; Password123!
+            admin@bitdesk.dev &bull; Password123!
           </div>
           <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
-            &bull; Log in as Admin to manage categories, approve pending agent signups, and promote user roles.<br />
-            &bull; <strong>For OTP Login:</strong> Do not use demo/fictional emails. Use your <strong>real Gmail address</strong> so Google delivers the verification code to your inbox!
+            &bull; Log in as Demo Admin to approve pending agent signups, manage categories, and promote users.<br />
+            &bull; <strong>To test with your own Gmail:</strong> Register an account with your real Gmail address, then log in as Demo Admin to approve or promote yourself to Admin/Agent!
           </p>
         </div>
 

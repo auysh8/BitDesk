@@ -28,14 +28,14 @@ BitDesk is a full-stack customer support platform built on the MERN stack. It br
 > * **Web App:** [https://bitdesk-1.onrender.com](https://bitdesk-1.onrender.com)
 > * **Backend API:** [https://bitdesk.onrender.com/api](https://bitdesk.onrender.com/api)
 > 
-> #### 🔑 Primary Administrator Account:
-> * **Email:** `pankajbhandari0714@gmail.com`
+> #### 🔑 Pre-Configured Demo Admin:
+> * **Email:** `admin@bitdesk.dev`
 > * **Password:** `Password123!`
-> * *Role:* **Admin** (Use this sole admin account to approve pending agent signups, manage categories, and add more support agents or administrators).
+> * *Role:* **Admin** (Use this pre-configured admin account to approve newly registered agents, manage categories, and promote your own account to Admin or Support Agent).
 > 
 > > [!IMPORTANT]
 > > **Testing OTP & Live Email Delivery:**  
-> > Do **NOT** use fictional or demo emails (`@bitdesk.dev`) to test OTPs because fake domains cannot receive real emails. To test OTP sign-in or 2-way ticket email delivery, **register or log in with your real Gmail address** so Google delivers the verification codes directly to your inbox.
+> > Do **NOT** use demo emails (`@bitdesk.dev`) if you want to test OTP or email notifications, because fake domains cannot receive real emails. To test OTP sign-in and live 2-way email sync, **register with your own real Gmail address**, then log in with the Demo Admin account above to approve or promote yourself!
 > 
 > > [!NOTE]
 > > **Render Free Tier Cold Start:**  

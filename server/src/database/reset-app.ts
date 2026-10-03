@@ -63,27 +63,27 @@ const resetApp = async () => {
     console.log("👥 Creating 3 users with 3 roles (Admin, Agent, Customer)...");
     const usersData = [
       {
-        name: "Pankaj Bhandari",
-        email: "pankajbhandari0714@gmail.com",
-        phone: "+919876543210",
+        name: "Demo Admin",
+        email: "admin@bitdesk.dev",
+        phone: "+1000000001",
         password: DEFAULT_PASSWORD,
         role: "admin",
         isVerified: true,
         isApproved: true,
       },
       {
-        name: "Auysh Agent",
-        email: "auysh1993@gmail.com",
-        phone: "+919876543211",
+        name: "Demo Agent",
+        email: "agent@bitdesk.dev",
+        phone: "+1000000002",
         password: DEFAULT_PASSWORD,
         role: "agent",
         isVerified: true,
         isApproved: true,
       },
       {
-        name: "Auysh Customer",
-        email: "auysh1652@gmail.com",
-        phone: "+919876543212",
+        name: "Demo Customer",
+        email: "customer@bitdesk.dev",
+        phone: "+1000000003",
         password: DEFAULT_PASSWORD,
         role: "customer",
         isVerified: true,
@@ -101,16 +101,16 @@ const resetApp = async () => {
     console.log("=================================================");
     console.log(`Global Password for all users: ${DEFAULT_PASSWORD}\n`);
     console.log("1. ADMIN USER:");
-    console.log("   • Name:     Pankaj Bhandari");
-    console.log("   • Email:    pankajbhandari0714@gmail.com");
+    console.log("   • Name:     Demo Admin");
+    console.log("   • Email:    admin@bitdesk.dev");
     console.log("   • Role:     admin (Approved & Verified)\n");
     console.log("2. SUPPORT AGENT:");
-    console.log("   • Name:     Auysh Agent");
-    console.log("   • Email:    auysh1993@gmail.com");
+    console.log("   • Name:     Demo Agent");
+    console.log("   • Email:    agent@bitdesk.dev");
     console.log("   • Role:     agent (Approved & Verified)\n");
     console.log("3. CUSTOMER:");
-    console.log("   • Name:     Auysh Customer");
-    console.log("   • Email:    auysh1652@gmail.com");
+    console.log("   • Name:     Demo Customer");
+    console.log("   • Email:    customer@bitdesk.dev");
     console.log("   • Role:     customer (Approved & Verified)");
     console.log("=================================================");
 
