@@ -27,7 +27,21 @@ export const VerifyOtp: React.FC = () => {
         otp,
       });
 
-      const { accessToken, user } = res.data.data;
+      const data = res.data.data;
+
+      // If user requires admin approval (Agent/Admin) and no access token was issued
+      if (data?.user?.isApproved === false || !data?.accessToken) {
+        navigate("/pending-approval", {
+          state: {
+            email: data?.user?.email || email,
+            role: data?.user?.role || "staff",
+            name: data?.user?.name || "",
+          },
+        });
+        return;
+      }
+
+      const { accessToken, user } = data;
       login(accessToken, user);
       navigate("/dashboard");
     } catch (err: any) {

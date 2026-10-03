@@ -134,9 +134,24 @@ export const Login: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <span>{error}</span>
+          <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div>
+                <span>{error}</span>
+                {error.toLowerCase().includes("pending administrator approval") && (
+                  <div className="mt-2">
+                    <Link
+                      to="/pending-approval"
+                      state={{ email }}
+                      className="font-semibold text-blue-700 underline hover:text-blue-800"
+                    >
+                      View Approval Status &amp; Details &rarr;
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

@@ -8,6 +8,7 @@ import Register from "./pages/auth/Register";
 import VerifyOtp from "./pages/auth/VerifyOtp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import PendingApproval from "./pages/auth/PendingApproval";
 import Dashboard from "./pages/dashboard/Dashboard";
 import TicketList from "./pages/tickets/TicketList";
 import CreateTicket from "./pages/tickets/CreateTicket";
@@ -24,6 +25,7 @@ export function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
