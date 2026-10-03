@@ -108,10 +108,33 @@ export const sendTicketEmail = async (
   setImmediate(async () => {
     try {
       let providerMessageId: string | undefined;
-
-      // 1. Check if Resend HTTP API is configured
       const resend = getResendClient();
-      if (resend) {
+
+      // 1. Check if Google Apps Script Gmail Relay is configured (bypasses domain restrictions & SMTP port blocks)
+      if (appConfig.GMAIL_RELAY_URL) {
+        const relayRes = await fetch(appConfig.GMAIL_RELAY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to,
+            subject: `[${ticketNumber}] ${subject}`,
+            html,
+            senderName: "BitDesk Support",
+            replyTo: replyToAddress,
+          }),
+        });
+
+        const relayJson: any = await relayRes.json().catch(() => null);
+        if (relayJson && relayJson.error) {
+          throw new Error(`Gmail Relay Error: ${relayJson.error}`);
+        }
+        providerMessageId = `gmail-relay-${Date.now()}`;
+        console.log(
+          `[Email Service - Gmail Relay] [${ticketNumber}] Dispatched to ${to}`,
+        );
+      }
+      // 2. Check if Resend HTTP API is configured
+      else if (resend) {
         // Resend requires a verified domain to send from custom addresses.
         // For public mailboxes (@gmail.com, @yahoo, etc.) or demo domains, fall back to onboarding@resend.dev
         let fromSender = "BitDesk Support <onboarding@resend.dev>";
@@ -383,7 +406,30 @@ export const sendOtpEmail = (
   setImmediate(async () => {
     try {
       const resend = getResendClient();
-      if (resend) {
+
+      // 1. Check if Google Apps Script Gmail Relay is configured
+      if (appConfig.GMAIL_RELAY_URL) {
+        const relayRes = await fetch(appConfig.GMAIL_RELAY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: email,
+            subject,
+            html,
+            senderName: "BitDesk Security",
+          }),
+        });
+
+        const relayJson: any = await relayRes.json().catch(() => null);
+        if (relayJson && relayJson.error) {
+          throw new Error(`Gmail Relay OTP Error: ${relayJson.error}`);
+        }
+        console.log(
+          `[Email Service - Gmail Relay OTP] Dispatched ${purpose} OTP to ${email}`,
+        );
+      }
+      // 2. Check if Resend HTTP API is configured
+      else if (resend) {
         let fromSender = "BitDesk Security <onboarding@resend.dev>";
         if (
           appConfig.EMAIL_FROM &&

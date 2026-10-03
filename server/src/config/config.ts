@@ -22,6 +22,7 @@ const appConfig = {
   REDIS_PORT: Number(process.env.REDIS_PORT) || 6379,
 
   // Email / HTTP APIs & SMTP
+  GMAIL_RELAY_URL: process.env.GMAIL_RELAY_URL || "https://script.google.com/macros/s/AKfycbxHLvbpkRq349tPpnaRpCF5p2kiuw7rfiQ3dNMXssrlzN8-g874S2NZ89KlNn5vLuxb/exec",
   RESEND_API_KEY: process.env.RESEND_API_KEY || "",
   BREVO_API_KEY: process.env.BREVO_API_KEY || "",
   SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
