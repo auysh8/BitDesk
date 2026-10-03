@@ -6,6 +6,13 @@
 
 BitDesk is a full-stack, enterprise-grade customer support platform built on the MERN stack. It bridges the gap between modern browser-based web portals and real-world email inboxes, featuring seamless 2-way email synchronization, role-based access control, collision locking, and high-performance transactional email delivery.
 
+<br />
+
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-bitdesk--1.onrender.com-0052cc?style=for-the-badge&logo=render)](https://bitdesk-1.onrender.com)
+[![API Status](https://img.shields.io/badge/⚡_API_Health-bitdesk.onrender.com-2ea44f?style=for-the-badge&logo=fastapi)](https://bitdesk.onrender.com/api/health)
+
+<br />
+
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-68a063?style=flat-square&logo=node.js)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7+-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
 [![React](https://img.shields.io/badge/React-v19-61dafb?style=flat-square&logo=react)](https://react.dev)
@@ -15,6 +22,18 @@ BitDesk is a full-stack, enterprise-grade customer support platform built on the
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-v3-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
 
 </div>
+
+---
+
+> ### 🌐 Live Deployment & Instant Demo Access
+> - **Live Web Application:** [https://bitdesk-1.onrender.com](https://bitdesk-1.onrender.com)
+> - **Production API:** [https://bitdesk.onrender.com/api](https://bitdesk.onrender.com/api)
+> - **API Health Check:** [https://bitdesk.onrender.com/api/health](https://bitdesk.onrender.com/api/health)
+>
+> **Demo Credentials (Password for all: `Password123!`):**
+> - **Admin User:** `pankajbhandari0714@gmail.com`
+> - **Support Agent:** `auysh1993@gmail.com`
+> - **Customer:** `auysh1652@gmail.com` (or `ayush1652@gmail.com`)
 
 ---
 
