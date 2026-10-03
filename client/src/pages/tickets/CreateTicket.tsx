@@ -44,7 +44,12 @@ export const CreateTicket: React.FC = () => {
       const newTicket = res.data.data;
       navigate(`/tickets/${newTicket._id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to create ticket.");
+      const apiErrors = err.response?.data?.errors;
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        setError(apiErrors.join(". "));
+      } else {
+        setError(err.response?.data?.message || "Failed to create ticket.");
+      }
     } finally {
       setIsLoading(false);
     }

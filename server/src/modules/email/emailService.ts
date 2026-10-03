@@ -5,6 +5,7 @@ import {
   renderTicketCreatedEmail,
   renderTicketReplyEmail,
   renderStatusChangedEmail,
+  renderTicketAssignedEmail,
 } from "./emailTemplate.js";
 
 let transporter: Transporter | null = null;
@@ -16,14 +17,17 @@ let transporter: Transporter | null = null;
 const getTransporter = async (): Promise<Transporter> => {
   if (transporter) return transporter;
 
-  if (appConfig.SMTP_USER && appConfig.SMTP_PASS) {
+  const smtpUser = appConfig.SMTP_USER?.trim();
+  const smtpPass = appConfig.SMTP_PASS?.replace(/\s+/g, "");
+
+  if (smtpUser && smtpPass) {
     transporter = nodemailer.createTransport({
       host: appConfig.SMTP_HOST,
       port: appConfig.SMTP_PORT,
       secure: appConfig.SMTP_PORT === 465,
       auth: {
-        user: appConfig.SMTP_USER,
-        pass: appConfig.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
     console.log(
@@ -66,10 +70,20 @@ export const sendTicketEmail = async (
 ): Promise<void> => {
   const { to, subject, html, ticketNumber, ticketId } = options;
 
-  // RFC Standard Threading Identifiers
-  const messageId = `<ticket-${ticketNumber}-${Date.now()}@bitdesk.local>`;
-  const threadReference = `<ticket-${ticketNumber}@bitdesk.local>`;
-  const replyToAddress = `BitDesk Support <reply+${ticketNumber}@bitdesk.local>`;
+  const fromEmailMatch = (appConfig.EMAIL_FROM || "").match(/<([^>]+)>/) || [
+    null,
+    (appConfig.EMAIL_FROM || "").trim(),
+  ];
+  const fromEmail =
+    fromEmailMatch[1] || appConfig.SMTP_USER || "support@bitdesk.local";
+  const [userPrefix, domain] = fromEmail.includes("@")
+    ? fromEmail.split("@")
+    : ["support", "bitdesk.local"];
+
+  // RFC Standard Threading Identifiers dynamically using active domain
+  const messageId = `<ticket-${ticketNumber}-${Date.now()}@${domain}>`;
+  const threadReference = `<ticket-${ticketNumber}@${domain}>`;
+  const replyToAddress = `BitDesk Support <${userPrefix}+${ticketNumber}@${domain}>`;
 
   // Asynchronous background execution (doesn't block the HTTP request)
   setImmediate(async () => {
@@ -195,3 +209,26 @@ export const notifyStatusChanged = (
     ticketId: ticket._id,
   });
 };
+
+export const notifyTicketAssigned = (
+  ticket: any,
+  assigneeEmail: string,
+  assigneeName: string,
+  assignerName: string,
+) => {
+  sendTicketEmail({
+    to: assigneeEmail,
+    subject: `You have been assigned to [${ticket.ticketNumber}] ${ticket.subject}`,
+    html: renderTicketAssignedEmail(
+      ticket.ticketNumber,
+      ticket.subject,
+      assigneeName,
+      assignerName,
+      ticket.priority,
+      ticket.description,
+    ),
+    ticketNumber: ticket.ticketNumber,
+    ticketId: ticket._id,
+  });
+};
+

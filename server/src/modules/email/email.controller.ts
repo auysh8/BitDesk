@@ -82,7 +82,7 @@ export const handleInboundEmail = asyncHandler(
     let ticketNumberMatch =
       (inReplyTo && inReplyTo.match(/ticket-(TKT-\d{4}-\d{6})/i)) ||
       (references && references.match(/ticket-(TKT-\d{4}-\d{6})/i)) ||
-      (to && to.match(/reply\+(TKT-\d{4}-\d{6})/i)) ||
+      (to && to.match(/\+(TKT-\d{4}-\d{6})/i)) ||
       subject.match(/(TKT-\d{4}-\d{6})/i);
 
     if (!ticketNumberMatch || !ticketNumberMatch[1]) {

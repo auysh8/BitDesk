@@ -63,6 +63,18 @@ export const TicketDetail: React.FC = () => {
     }
   }, [ticketId, isAdmin]);
 
+  const canReplyPublicly =
+    isAdmin ||
+    !ticket?.assignedTo ||
+    ticket?.assignedTo?._id === user?._id ||
+    user?.role === "customer";
+
+  useEffect(() => {
+    if (ticket && isStaff && !canReplyPublicly && messageType === "public") {
+      setMessageType("internal");
+    }
+  }, [ticket, isStaff, canReplyPublicly, messageType]);
+
   const handleAssignTicket = async (agentId: string) => {
     if (!agentId) return;
     setIsAssigning(true);
@@ -81,13 +93,15 @@ export const TicketDetail: React.FC = () => {
     if (!replyText.trim()) return;
     setIsSubmitting(true);
 
+    const actualType = !canReplyPublicly && isStaff ? "internal" : messageType;
+
     try {
       await axiosClient.post(`/tickets/${ticketId}/messages`, {
         body: replyText,
-        type: messageType,
+        type: actualType,
       });
       setReplyText("");
-      setMessageType("public");
+      setMessageType(canReplyPublicly ? "public" : "internal");
       await fetchTicketData();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to send message");
@@ -336,13 +350,22 @@ export const TicketDetail: React.FC = () => {
                   <div className="flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
                     <button
                       type="button"
+                      disabled={!canReplyPublicly}
                       onClick={() => setMessageType("public")}
-                      className={`rounded-md px-3 py-1 transition ${
-                        messageType === "public"
-                          ? "bg-white text-blue-700 shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
+                      title={
+                        !canReplyPublicly
+                          ? `Only ${ticket.assignedTo?.name} or an admin can reply publicly`
+                          : ""
+                      }
+                      className={`inline-flex items-center gap-1 rounded-md px-3 py-1 transition ${
+                        !canReplyPublicly
+                          ? "cursor-not-allowed text-slate-400 opacity-50"
+                          : messageType === "public"
+                            ? "bg-white text-blue-700 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
+                      {!canReplyPublicly && <Lock className="h-3 w-3" />}
                       Public Reply
                     </button>
                     <button
@@ -360,6 +383,21 @@ export const TicketDetail: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Collision Alert for Non-Assigned Agents */}
+              {!canReplyPublicly && isStaff && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
+                  <Lock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-amber-950">
+                      Assigned to {ticket.assignedTo?.name}
+                    </p>
+                    <p className="mt-0.5 text-amber-800 leading-relaxed">
+                      Public customer replies are restricted to the assigned agent to prevent customer confusion. You can post an <strong>internal note</strong> below to assist your teammate.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <textarea
                 required

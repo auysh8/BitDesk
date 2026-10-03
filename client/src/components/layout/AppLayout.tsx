@@ -35,28 +35,50 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      {/* Sidebar for Desktop */}
-      <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-slate-100 px-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-            <ShieldCheck className="h-5 w-5" />
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-900/40 md:hidden backdrop-blur-xs"
+        />
+      )}
+
+      {/* Sidebar for Desktop & Mobile */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-16 items-center justify-between border-b border-slate-100 px-6">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <span className="text-lg font-bold tracking-tight text-slate-900">
+              BitDesk
+            </span>
           </div>
-          <span className="text-lg font-bold tracking-tight text-slate-900">
-            BitDesk
-          </span>
+
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="rounded p-1 text-slate-400 hover:bg-slate-100 md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="p-4">
           <Link
             to="/tickets/new"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            onClick={() => setSidebarOpen(false)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
           >
             <PlusCircle className="h-4 w-4" />
             New Ticket
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
+        <nav className="flex-1 space-y-1 px-4 overflow-y-auto">
           {links.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.path;
@@ -64,9 +86,10 @@ export const AppLayout: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
                   active
-                    ? "bg-blue-50 text-blue-700"
+                    ? "bg-blue-50 text-blue-700 font-semibold"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
@@ -77,25 +100,53 @@ export const AppLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="border-t border-slate-100 p-4">
-          <div className="mb-3 px-2">
-            <p className="text-xs font-semibold text-slate-400 uppercase">
-              Signed in as
-            </p>
-            <p className="truncate text-sm font-medium text-slate-800">
-              {user?.name}
-            </p>
-            <span className="inline-block mt-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase text-slate-600">
-              {user?.role}
-            </span>
+        {/* Refined User Profile Card */}
+        <div className="border-t border-slate-200/80 p-3">
+          <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 shadow-2xs hover:bg-slate-100/60 transition">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* User Avatar with Role Colors */}
+              <div
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white shadow-xs ${
+                  user?.role === "admin"
+                    ? "bg-gradient-to-tr from-purple-600 to-indigo-600"
+                    : user?.role === "agent"
+                      ? "bg-gradient-to-tr from-blue-600 to-cyan-600"
+                      : "bg-gradient-to-tr from-emerald-600 to-teal-600"
+                }`}
+              >
+                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+              </div>
+
+              {/* Name & Role Badge */}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
+                  {user?.name}
+                </p>
+                <div className="mt-0.5">
+                  <span
+                    className={`inline-block rounded px-1.5 py-0.2 text-[10px] font-bold uppercase tracking-wider ${
+                      user?.role === "admin"
+                        ? "bg-purple-100 text-purple-700 border border-purple-200"
+                        : user?.role === "agent"
+                          ? "bg-blue-100 text-blue-700 border border-blue-200"
+                          : "bg-slate-200 text-slate-700 border border-slate-300"
+                    }`}
+                  >
+                    {user?.role}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={() => logout()}
+              title="Sign Out"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 border border-transparent hover:border-red-100 transition shrink-0"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            onClick={() => logout()}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </button>
         </div>
       </aside>
 

@@ -89,3 +89,25 @@ export const renderStatusChangedEmail = (
   `;
   return baseLayout(content, ticketNumber);
 };
+
+export const renderTicketAssignedEmail = (
+  ticketNumber: string,
+  subject: string,
+  assigneeName: string,
+  assignerName: string,
+  priority: string,
+  description: string,
+) => {
+  const content = `
+    <p>Hi <strong>${assigneeName}</strong>,</p>
+    <p>A support ticket has been assigned to you by <strong>${assignerName}</strong>.</p>
+    <div class="quote-box">
+      <strong>Ticket:</strong> [${ticketNumber}] ${subject}<br>
+      <strong>Priority:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #0284c7;">${priority}</span><br><br>
+      <strong>Description:</strong><br>
+      ${(description || "").replace(/\n/g, "<br>")}
+    </div>
+    <p>Please review the ticket in your BitDesk dashboard to begin resolving it.</p>
+  `;
+  return baseLayout(content, ticketNumber);
+};

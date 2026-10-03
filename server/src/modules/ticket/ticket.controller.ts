@@ -19,6 +19,7 @@ import {
   notifyTicketCreated,
   notifyTicketReply,
   notifyStatusChanged,
+  notifyTicketAssigned,
 } from "../email/emailService.js";
 
 /**
@@ -202,6 +203,20 @@ export const addTicketMessage = asyncHandler(
       throw new ApiError(403, "Customers cannot create internal notes");
     }
 
+    // Role check: If ticket is assigned to another agent, non-assigned agents can only post internal notes
+    const isPublic = !type || type === MESSAGE_TYPE.PUBLIC;
+    if (
+      isPublic &&
+      user.role === USER_ROLES.AGENT &&
+      ticket.assignedTo &&
+      ticket.assignedTo.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(
+        403,
+        "This ticket is assigned to another agent. Only the assigned agent or an administrator can send public replies to the customer. You can still post an internal note.",
+      );
+    }
+
     const message = await TicketMessage.create({
       ticketId: ticket._id,
       senderId: user._id,
@@ -233,20 +248,21 @@ export const addTicketMessage = asyncHandler(
         newValue: TICKET_STATUS.REOPENED,
         metadata: { reason: "Customer replied to resolved/closed ticket" },
       });
-      // Send outbound email if it's a public reply
-      if (message.type === MESSAGE_TYPE.PUBLIC) {
-        if (user.role === USER_ROLES.CUSTOMER) {
-          // If customer replied and ticket has an assigned agent, notify agent
-          if (ticket.assignedTo) {
-            User.findById(ticket.assignedTo).then((agent) => {
-              if (agent)
-                notifyTicketReply(ticket, agent.email, user.name, body);
-            });
-          }
-        } else {
-          // If agent replied, notify requester
-          notifyTicketReply(ticket, ticket.requesterEmail, user.name, body);
+    }
+
+    // Send outbound email if it's a public reply
+    if (message.type === MESSAGE_TYPE.PUBLIC) {
+      if (user.role === USER_ROLES.CUSTOMER) {
+        // If customer replied and ticket has an assigned agent, notify agent
+        if (ticket.assignedTo) {
+          User.findById(ticket.assignedTo).then((agent) => {
+            if (agent)
+              notifyTicketReply(ticket, agent.email, user.name, body);
+          });
         }
+      } else {
+        // If agent replied, notify requester
+        notifyTicketReply(ticket, ticket.requesterEmail, user.name, body);
       }
     }
 
@@ -357,6 +373,9 @@ export const assignTicket = asyncHandler(
     }
 
     await ticket.save();
+
+    // Notify the assigned staff member via email
+    notifyTicketAssigned(ticket, agent.email, agent.name, actor.name);
 
     await TicketActivity.create({
       ticketId: ticket._id,
