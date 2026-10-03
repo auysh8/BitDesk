@@ -14,6 +14,7 @@ import {
   MESSAGE_SOURCE,
 } from "../../constants/ticket.js";
 import { USER_ROLES } from "../../constants/roles.js";
+import { notifyTicketReply } from "./emailService.js";
 
 /**
  * Strips quoted history from reply emails (e.g. "On Oct 1 ... wrote:" or lines starting with ">")
@@ -191,6 +192,46 @@ export const handleInboundEmail = asyncHandler(
     }
 
     await ticket.save();
+
+    // 8. 2-Way Email Relay: Notify the other party of this email reply
+    if (senderRole === USER_ROLES.CUSTOMER) {
+      // Customer replied via email -> notify assigned agent (or admins if unassigned)
+      if (ticket.assignedTo) {
+        User.findById(ticket.assignedTo).then((agent) => {
+          if (agent && agent.email && agent.email !== senderEmail) {
+            notifyTicketReply(
+              ticket,
+              agent.email,
+              senderUser?.name || "Customer",
+              cleanBody,
+            );
+          }
+        });
+      } else {
+        User.find({ role: USER_ROLES.ADMIN }).select("email").then((admins) => {
+          for (const admin of admins) {
+            if (admin.email && admin.email !== senderEmail) {
+              notifyTicketReply(
+                ticket,
+                admin.email,
+                `${senderUser?.name || "Customer"} (Customer Waiting)`,
+                cleanBody,
+              );
+            }
+          }
+        });
+      }
+    } else {
+      // Agent / Admin replied via email -> notify customer
+      if (ticket.requesterEmail && ticket.requesterEmail !== senderEmail) {
+        notifyTicketReply(
+          ticket,
+          ticket.requesterEmail,
+          senderUser?.name || "Support Agent",
+          cleanBody,
+        );
+      }
+    }
 
     // Log activity
     await TicketActivity.create({
