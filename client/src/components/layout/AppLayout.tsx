@@ -34,7 +34,7 @@ export const AppLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-slate-100/75 text-slate-900">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -45,13 +45,13 @@ export const AppLayout: React.FC = () => {
 
       {/* Sidebar for Desktop & Mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-xs transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-slate-100 px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <span className="text-lg font-bold tracking-tight text-slate-900">
@@ -61,17 +61,17 @@ export const AppLayout: React.FC = () => {
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 md:hidden"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 md:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="px-4 py-3">
           <Link
             to="/tickets/new"
             onClick={() => setSidebarOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 transition"
           >
             <PlusCircle className="h-4 w-4" />
             New Ticket
@@ -87,7 +87,7 @@ export const AppLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   active
                     ? "bg-blue-50 text-blue-700 font-semibold"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -101,17 +101,17 @@ export const AppLayout: React.FC = () => {
         </nav>
 
         {/* Refined User Profile Card */}
-        <div className="border-t border-slate-200/80 p-3">
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200/70 p-2.5 shadow-2xs hover:bg-slate-100/60 transition">
+        <div className="p-3">
+          <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 p-2.5 shadow-2xs hover:bg-slate-100 transition">
             <Link
               to="/profile"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-80 transition"
+              className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition"
               title="View & Edit Account Profile"
             >
               {/* User Avatar with Role Colors */}
               <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white shadow-xs ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-xs ${
                   user?.role === "admin"
                     ? "bg-gradient-to-tr from-purple-600 to-indigo-600"
                     : user?.role === "agent"
@@ -129,12 +129,12 @@ export const AppLayout: React.FC = () => {
                 </p>
                 <div className="mt-0.5">
                   <span
-                    className={`inline-block rounded px-1.5 py-0.2 text-[10px] font-bold uppercase tracking-wider ${
+                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       user?.role === "admin"
-                        ? "bg-purple-100 text-purple-700 border border-purple-200"
+                        ? "bg-purple-100 text-purple-700"
                         : user?.role === "agent"
-                          ? "bg-blue-100 text-blue-700 border border-blue-200"
-                          : "bg-slate-200 text-slate-700 border border-slate-300"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {user?.role}
@@ -147,7 +147,7 @@ export const AppLayout: React.FC = () => {
             <button
               onClick={() => logout()}
               title="Sign Out"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 border border-transparent hover:border-red-100 transition shrink-0"
+              className="rounded-xl p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition shrink-0"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -158,10 +158,10 @@ export const AppLayout: React.FC = () => {
       {/* Main Area */}
       <div className="flex flex-1 flex-col">
         {/* Top Navbar */}
-        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-8">
+        <header className="flex h-16 items-center justify-between bg-white/80 backdrop-blur-md shadow-2xs px-4 md:px-8">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
           >
             {sidebarOpen ? (
               <X className="h-5 w-5" />
@@ -173,8 +173,8 @@ export const AppLayout: React.FC = () => {
             Support Ticketing & Email System
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold uppercase text-slate-500">
-              Role: <strong className="text-blue-600">{user?.role}</strong>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+              Role: <strong className="text-blue-600 capitalize">{user?.role}</strong>
             </span>
           </div>
         </header>

@@ -89,14 +89,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <div
-      className={`rounded-lg border bg-white transition ${
+      className={`rounded-2xl bg-white shadow-sm transition-all duration-200 ${
         isFocused
-          ? "border-blue-600 ring-1 ring-blue-600 shadow-xs"
-          : "border-slate-300 hover:border-slate-400"
+          ? "shadow-md ring-2 ring-blue-500/20"
+          : "hover:shadow-md"
       }`}
     >
       {/* Google Keep style formatting toolbar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-100 bg-slate-50/70 px-3 py-1.5 rounded-t-lg">
+      <div className="flex flex-wrap items-center justify-between bg-slate-50/80 px-3.5 py-2 rounded-t-2xl">
         <div className="flex items-center gap-0.5 text-slate-600">
           <button
             type="button"
@@ -106,10 +106,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("bold");
             }}
-            className={`rounded p-1.5 transition ${
+            className={`rounded-lg p-1.5 transition ${
               activeFormats.bold
                 ? "bg-blue-100 text-blue-700 font-bold"
-                : "hover:bg-slate-200/70 hover:text-slate-900"
+                : "hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             <Bold className="h-3.5 w-3.5" />
@@ -123,10 +123,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("italic");
             }}
-            className={`rounded p-1.5 transition ${
+            className={`rounded-lg p-1.5 transition ${
               activeFormats.italic
                 ? "bg-blue-100 text-blue-700"
-                : "hover:bg-slate-200/70 hover:text-slate-900"
+                : "hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             <Italic className="h-3.5 w-3.5" />
@@ -140,16 +140,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("underline");
             }}
-            className={`rounded p-1.5 transition ${
+            className={`rounded-lg p-1.5 transition ${
               activeFormats.underline
                 ? "bg-blue-100 text-blue-700"
-                : "hover:bg-slate-200/70 hover:text-slate-900"
+                : "hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             <Underline className="h-3.5 w-3.5" />
           </button>
 
-          <div className="mx-1 h-3.5 w-px bg-slate-200" />
+          <div className="mx-1.5 h-3.5 w-px bg-slate-200/80" />
 
           <button
             type="button"
@@ -159,10 +159,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("insertUnorderedList");
             }}
-            className={`rounded p-1.5 transition ${
+            className={`rounded-lg p-1.5 transition ${
               activeFormats.list
                 ? "bg-blue-100 text-blue-700"
-                : "hover:bg-slate-200/70 hover:text-slate-900"
+                : "hover:bg-slate-200/60 hover:text-slate-900"
             }`}
           >
             <List className="h-3.5 w-3.5" />
@@ -176,7 +176,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("formatBlock", "<blockquote>");
             }}
-            className="rounded p-1.5 hover:bg-slate-200/70 hover:text-slate-900 transition"
+            className="rounded-lg p-1.5 hover:bg-slate-200/60 hover:text-slate-900 transition"
           >
             <Quote className="h-3.5 w-3.5" />
           </button>
@@ -189,7 +189,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               e.preventDefault();
               handleFormat("formatBlock", "<pre>");
             }}
-            className="rounded p-1.5 hover:bg-slate-200/70 hover:text-slate-900 transition"
+            className="rounded-lg p-1.5 hover:bg-slate-200/60 hover:text-slate-900 transition"
           >
             <Code className="h-3.5 w-3.5" />
           </button>
@@ -200,7 +200,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             type="button"
             disabled={disabled || isUploading}
             onClick={onAttachFile}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-100 transition disabled:opacity-50"
           >
             <Paperclip className="h-3.5 w-3.5 text-slate-500" />
             {isUploading ? "Uploading..." : "Attach File"}
@@ -209,7 +209,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>
 
       {/* WYSIWYG Editable Canvas */}
-      <div className="relative p-3.5">
+      <div className="relative p-4">
         {isEmpty && !isFocused && (
           <div className="pointer-events-none absolute left-3.5 top-3.5 text-sm text-slate-400 select-none">
             {placeholder}

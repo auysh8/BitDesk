@@ -96,7 +96,7 @@ export const CreateTicket: React.FC = () => {
         Back
       </button>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xs">
+      <div className="rounded-3xl bg-white p-8 shadow-sm border-0">
         <h1 className="text-xl font-bold tracking-tight text-slate-900">
           Create New Support Ticket
         </h1>
@@ -106,7 +106,7 @@ export const CreateTicket: React.FC = () => {
         </p>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -123,7 +123,7 @@ export const CreateTicket: React.FC = () => {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="e.g. Cannot access payment gateway"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="mt-1.5 w-full rounded-xl bg-slate-100/80 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
             />
           </div>
 
@@ -136,7 +136,7 @@ export const CreateTicket: React.FC = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 px-3.5 py-2.5 text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               >
                 {categories.map((c) => (
                   <option key={c._id} value={c._id}>
@@ -153,7 +153,7 @@ export const CreateTicket: React.FC = () => {
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 px-3.5 py-2.5 text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -173,7 +173,7 @@ export const CreateTicket: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the issue, steps to reproduce, and any error messages..."
-              className="mt-1 w-full rounded-lg border border-slate-300 p-4 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="mt-1.5 w-full rounded-xl bg-slate-100/80 p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
             />
           </div>
 
@@ -195,7 +195,7 @@ export const CreateTicket: React.FC = () => {
                   type="button"
                   disabled={isUploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100/90 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200/80 disabled:opacity-50 shadow-2xs transition-colors border-0"
                 >
                   <Paperclip className="h-3.5 w-3.5 text-slate-500" />
                   {isUploading ? "Uploading..." : "Attach Files"}
@@ -204,18 +204,18 @@ export const CreateTicket: React.FC = () => {
             </div>
 
             {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="flex flex-wrap gap-2 rounded-2xl bg-slate-100/70 p-3.5 border-0">
                 {attachments.map((att, idx) => (
                   <div
                     key={idx}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-slate-800 shadow-2xs border-0"
                   >
-                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <FileText className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                     <span className="truncate max-w-xs">{att.filename}</span>
                     <button
                       type="button"
                       onClick={() => removeAttachment(idx)}
-                      className="rounded hover:bg-blue-100 p-0.5 text-blue-600"
+                      className="rounded-lg hover:bg-slate-100 p-0.5 text-slate-500 hover:text-red-600 transition"
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>
@@ -229,14 +229,14 @@ export const CreateTicket: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-colors border-0"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {isLoading ? "Submitting..." : "Submit Ticket"}
             </button>

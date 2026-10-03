@@ -94,7 +94,7 @@ export const UserProfile: React.FC = () => {
       </div>
 
       {/* Profile Overview Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+      <div className="rounded-2xl bg-white p-6 shadow-sm border-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white shadow-md shadow-blue-500/20">
@@ -103,11 +103,11 @@ export const UserProfile: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-900">{user?.name}</h2>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold uppercase text-blue-700 border border-blue-200">
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold uppercase text-blue-700">
                   <Shield className="h-3 w-3" />
                   {user?.role}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                   <CheckCircle className="h-3 w-3" />
                   Verified
                 </span>
@@ -127,7 +127,7 @@ export const UserProfile: React.FC = () => {
       {/* Grid of Update Profile & Change Password */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Personal Details */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+        <div className="rounded-2xl bg-white p-6 shadow-sm border-0">
           <div className="flex items-center gap-2 mb-4">
             <User className="h-5 w-5 text-blue-600" />
             <h3 className="text-base font-bold text-slate-900">
@@ -136,14 +136,14 @@ export const UserProfile: React.FC = () => {
           </div>
 
           {profileSuccess && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-xs text-emerald-700 border border-emerald-200">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50/90 p-3 text-xs text-emerald-700 shadow-2xs border-0">
               <CheckCircle className="h-4 w-4 shrink-0" />
               <span>{profileSuccess}</span>
             </div>
           )}
 
           {profileError && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50/90 p-3 text-xs text-red-700 shadow-2xs border-0">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{profileError}</span>
             </div>
@@ -159,7 +159,7 @@ export const UserProfile: React.FC = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 py-2 px-3 text-slate-900 focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
@@ -167,7 +167,7 @@ export const UserProfile: React.FC = () => {
               <label className="block text-xs font-semibold uppercase text-slate-600">
                 Email Address (Read-Only)
               </label>
-              <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-slate-500 cursor-not-allowed">
+              <div className="mt-1.5 flex items-center gap-2 rounded-xl bg-slate-100/60 py-2.5 px-3.5 text-slate-500 cursor-not-allowed border-0">
                 <Mail className="h-4 w-4 text-slate-400" />
                 <span>{user?.email}</span>
               </div>
@@ -177,14 +177,14 @@ export const UserProfile: React.FC = () => {
               <label className="block text-xs font-semibold uppercase text-slate-600">
                 Phone Number
               </label>
-              <div className="relative mt-1">
-                <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <div className="relative mt-1.5">
+                <Phone className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+919876543210"
-                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-slate-900 focus:border-blue-600 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-100/80 py-2.5 pl-9 pr-3.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
                 />
               </div>
             </div>
@@ -192,7 +192,7 @@ export const UserProfile: React.FC = () => {
             <button
               type="submit"
               disabled={profileLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors"
             >
               <Save className="h-3.5 w-3.5" />
               {profileLoading ? "Saving..." : "Save Profile"}
@@ -201,7 +201,7 @@ export const UserProfile: React.FC = () => {
         </div>
 
         {/* Change Password */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+        <div className="rounded-2xl bg-white p-6 shadow-sm border-0">
           <div className="flex items-center gap-2 mb-4">
             <Lock className="h-5 w-5 text-purple-600" />
             <h3 className="text-base font-bold text-slate-900">
@@ -210,14 +210,14 @@ export const UserProfile: React.FC = () => {
           </div>
 
           {passwordSuccess && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-xs text-emerald-700 border border-emerald-200">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50/90 p-3 text-xs text-emerald-700 shadow-2xs border-0">
               <CheckCircle className="h-4 w-4 shrink-0" />
               <span>{passwordSuccess}</span>
             </div>
           )}
 
           {passwordError && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50/90 p-3 text-xs text-red-700 shadow-2xs border-0">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{passwordError}</span>
             </div>
@@ -234,7 +234,7 @@ export const UserProfile: React.FC = () => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="••••••••"
-                className="mt-1 w-full rounded-lg border border-slate-300 py-2 px-3 text-slate-900 focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
@@ -249,7 +249,7 @@ export const UserProfile: React.FC = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="mt-1 w-full rounded-lg border border-slate-300 py-2 px-3 text-slate-900 focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
@@ -264,14 +264,14 @@ export const UserProfile: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="mt-1 w-full rounded-lg border border-slate-300 py-2 px-3 text-slate-900 focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={passwordLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-purple-700 shadow-sm disabled:opacity-50 transition-colors"
             >
               <Lock className="h-3.5 w-3.5" />
               {passwordLoading ? "Updating..." : "Update Password"}

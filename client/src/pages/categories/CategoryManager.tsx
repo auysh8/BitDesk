@@ -73,14 +73,14 @@ export const CategoryManager: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Category List (2 Cols) */}
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs lg:col-span-2">
-          <div className="border-b border-slate-100 p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-600">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm border-0 lg:col-span-2">
+          <div className="bg-slate-50/80 p-4 px-6">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Existing Categories
             </h2>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100/70">
             {loading ? (
               <p className="p-6 text-sm text-slate-400">
                 Loading categories...
@@ -91,10 +91,10 @@ export const CategoryManager: React.FC = () => {
               categories.map((c) => (
                 <div
                   key={c._id}
-                  className="flex items-center justify-between p-4 hover:bg-slate-50 transition"
+                  className="flex items-center justify-between p-4 px-6 hover:bg-slate-50/60 transition"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-blue-50 p-2 text-blue-600 mt-0.5">
+                    <div className="rounded-xl bg-blue-50/80 p-2.5 text-blue-600 mt-0.5">
                       <Tags className="h-4 w-4" />
                     </div>
                     <div>
@@ -128,7 +128,7 @@ export const CategoryManager: React.FC = () => {
 
                     <button
                       onClick={() => handleToggleActive(c._id, c.isActive)}
-                      className="text-xs font-medium text-slate-500 hover:text-slate-800 underline"
+                      className="rounded-lg bg-slate-100/80 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
                     >
                       {c.isActive ? "Deactivate" : "Activate"}
                     </button>
@@ -140,13 +140,13 @@ export const CategoryManager: React.FC = () => {
         </div>
 
         {/* Create Category Form (1 Col) */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs h-fit">
+        <div className="rounded-2xl bg-white p-6 shadow-sm border-0 h-fit">
           <h2 className="text-base font-semibold text-slate-900">
             Add New Category
           </h2>
 
           {error && (
-            <div className="mt-3 rounded-lg bg-red-50 p-2.5 text-xs text-red-700">
+            <div className="mt-3 rounded-xl bg-red-50/90 p-3 text-xs text-red-700 shadow-2xs border-0">
               {error}
             </div>
           )}
@@ -162,7 +162,7 @@ export const CategoryManager: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Billing, Technical Support"
-                className="mt-1 w-full rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
@@ -175,14 +175,14 @@ export const CategoryManager: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief summary of issues under this category..."
-                className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-blue-600 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl bg-slate-100/80 p-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               <PlusCircle className="h-4 w-4" />
               {isSubmitting ? "Creating..." : "Create Category"}

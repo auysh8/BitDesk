@@ -14,10 +14,10 @@ export const PendingApproval: React.FC = () => {
   const roleLabel = role === "admin" ? "Administrator" : role === "agent" ? "Support Agent" : role;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-xl border border-slate-100">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100/75 px-4 py-12">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-xl border-0">
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-200 shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 shadow-2xs">
             <Clock className="h-8 w-8 animate-pulse" />
           </div>
 
@@ -30,13 +30,13 @@ export const PendingApproval: React.FC = () => {
         </div>
 
         {/* Verification Summary Card */}
-        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="mt-6 rounded-2xl bg-slate-50/80 p-4 border-0">
+          <div className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-emerald-600" />
               <span className="text-xs font-semibold text-slate-700">Email Verification</span>
             </div>
-            <span className="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
               Completed
             </span>
           </div>
@@ -56,7 +56,7 @@ export const PendingApproval: React.FC = () => {
             )}
             <div className="flex justify-between">
               <span className="text-slate-400">Requested Role:</span>
-              <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 font-semibold text-amber-800 uppercase tracking-wider">
                 <ShieldCheck className="h-3 w-3" /> {roleLabel}
               </span>
             </div>
@@ -64,7 +64,7 @@ export const PendingApproval: React.FC = () => {
         </div>
 
         {/* Explanation Alert */}
-        <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-2">
+        <div className="mt-5 rounded-2xl bg-amber-50/90 p-4 text-xs text-amber-900 space-y-2 border-0 shadow-2xs">
           <p className="font-semibold text-amber-950 flex items-center gap-1.5">
             <span>🛡️</span> Why do I have to wait?
           </p>
@@ -80,7 +80,7 @@ export const PendingApproval: React.FC = () => {
         <div className="mt-6 flex flex-col gap-3">
           <Link
             to="/login"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors border-0"
           >
             Return to Sign In
             <ArrowRight className="h-4 w-4" />

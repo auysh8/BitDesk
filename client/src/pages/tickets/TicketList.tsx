@@ -90,16 +90,16 @@ export const TicketList: React.FC = () => {
 
   const getStatusBadge = (st: string) => {
     const map: Record<string, string> = {
-      open: "bg-blue-50 text-blue-700 border-blue-200",
-      in_progress: "bg-amber-50 text-amber-700 border-amber-200",
-      pending: "bg-orange-50 text-orange-700 border-orange-200",
-      resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      closed: "bg-slate-100 text-slate-700 border-slate-200",
-      reopened: "bg-purple-50 text-purple-700 border-purple-200",
+      open: "bg-blue-100/80 text-blue-700",
+      in_progress: "bg-amber-100/80 text-amber-700",
+      pending: "bg-orange-100/80 text-orange-700",
+      resolved: "bg-emerald-100/80 text-emerald-700",
+      closed: "bg-slate-200/80 text-slate-700",
+      reopened: "bg-purple-100/80 text-purple-700",
     };
     return (
       <span
-        className={`inline-block rounded-md border px-2 py-0.5 text-xs font-semibold uppercase ${map[st] || "bg-slate-100"}`}
+        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${map[st] || "bg-slate-100 text-slate-700"}`}
       >
         {st.replace("_", " ")}
       </span>
@@ -109,13 +109,13 @@ export const TicketList: React.FC = () => {
   const getPriorityBadge = (p: string) => {
     const map: Record<string, string> = {
       low: "text-slate-600 bg-slate-100",
-      medium: "text-blue-700 bg-blue-50",
-      high: "text-orange-700 bg-orange-50",
-      urgent: "text-red-700 bg-red-50",
+      medium: "text-blue-700 bg-blue-100/80",
+      high: "text-orange-700 bg-orange-100/80",
+      urgent: "text-rose-700 bg-rose-100/80",
     };
     return (
       <span
-        className={`rounded px-2 py-0.5 text-xs font-semibold uppercase ${map[p] || ""}`}
+        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${map[p] || ""}`}
       >
         {p}
       </span>
@@ -135,25 +135,25 @@ export const TicketList: React.FC = () => {
         </div>
         <Link
           to="/tickets/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 transition"
         >
           <PlusCircle className="h-4 w-4" />
           Create Ticket
         </Link>
       </div>
 
-      {/* Quick Preset Tabs (Staff & Admin) */}
+      {/* Quick Preset Segmented Tabs (Staff & Admin) */}
       {isStaff && (
-        <div className="flex border-b border-slate-200 text-sm font-medium">
+        <div className="inline-flex rounded-2xl bg-slate-200/60 p-1 text-xs font-semibold">
           <button
             onClick={() => {
               setActiveTab("all");
               setPage(1);
             }}
-            className={`border-b-2 px-4 py-2.5 transition-colors ${
+            className={`rounded-xl px-4 py-2 transition-all ${
               activeTab === "all"
-                ? "border-blue-600 text-blue-600 font-semibold"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             All Tickets
@@ -163,10 +163,10 @@ export const TicketList: React.FC = () => {
               setActiveTab("mine");
               setPage(1);
             }}
-            className={`border-b-2 px-4 py-2.5 transition-colors ${
+            className={`rounded-xl px-4 py-2 transition-all ${
               activeTab === "mine"
-                ? "border-blue-600 text-blue-600 font-semibold"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Assigned to Me
@@ -176,10 +176,10 @@ export const TicketList: React.FC = () => {
               setActiveTab("unassigned");
               setPage(1);
             }}
-            className={`border-b-2 px-4 py-2.5 transition-colors ${
+            className={`rounded-xl px-4 py-2 transition-all ${
               activeTab === "unassigned"
-                ? "border-blue-600 text-blue-600 font-semibold"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Unassigned
@@ -188,9 +188,9 @@ export const TicketList: React.FC = () => {
       )}
 
       {/* Search and Filters Bar */}
-      <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 rounded-2xl bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
         <div className="relative lg:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search number or subject..."
@@ -199,7 +199,7 @@ export const TicketList: React.FC = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-blue-600 focus:outline-none"
+            className="w-full rounded-xl bg-slate-100/80 py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
           />
         </div>
 
@@ -209,7 +209,7 @@ export const TicketList: React.FC = () => {
             setStatus(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+          className="rounded-xl bg-slate-100/80 py-2.5 px-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition cursor-pointer"
         >
           <option value="">All Statuses</option>
           <option value="open">Open</option>
@@ -226,7 +226,7 @@ export const TicketList: React.FC = () => {
             setPriority(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+          className="rounded-xl bg-slate-100/80 py-2.5 px-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition cursor-pointer"
         >
           <option value="">All Priorities</option>
           <option value="low">Low</option>
@@ -241,7 +241,7 @@ export const TicketList: React.FC = () => {
             setCategory(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+          className="rounded-xl bg-slate-100/80 py-2.5 px-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition cursor-pointer"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -251,15 +251,15 @@ export const TicketList: React.FC = () => {
           ))}
         </select>
 
-        <div className="flex items-center gap-1.5">
-          <ArrowUpDown className="h-4 w-4 text-slate-400" />
+        <div className="relative flex items-center">
+          <ArrowUpDown className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <select
             value={sortOption}
             onChange={(e) => {
               setSortOption(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-sm focus:border-blue-600 focus:outline-none"
+            className="w-full rounded-xl bg-slate-100/80 py-2.5 pl-10 pr-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition cursor-pointer"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -270,10 +270,10 @@ export const TicketList: React.FC = () => {
       </div>
 
       {/* Tickets Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="px-6 py-4">Ticket</th>
                 <th className="px-6 py-4">Status</th>
@@ -327,7 +327,7 @@ export const TicketList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {t.assignedTo ? (
-                        <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                           {t.assignedTo.name}
                         </span>
                       ) : (
@@ -348,22 +348,22 @@ export const TicketList: React.FC = () => {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-3">
-            <span className="text-xs text-slate-500">
+          <div className="flex items-center justify-between bg-slate-50/60 px-6 py-3.5">
+            <span className="text-xs font-medium text-slate-500">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                className="rounded-xl bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 disabled:opacity-40 transition-colors"
               >
                 Previous
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                className="rounded-xl bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 disabled:opacity-40 transition-colors"
               >
                 Next
               </button>
