@@ -31,9 +31,9 @@ BitDesk is a full-stack, enterprise-grade customer support platform built on the
 > - **API Health Check:** [https://bitdesk.onrender.com/api/health](https://bitdesk.onrender.com/api/health)
 >
 > **Demo Credentials (Password for all: `Password123!`):**
-> - **Admin User:** `pankajbhandari0714@gmail.com`
-> - **Support Agent:** `auysh1993@gmail.com`
-> - **Customer:** `auysh1652@gmail.com` (or `ayush1652@gmail.com`)
+> - **Admin User:** `admin@bitdesk.dev`
+> - **Support Agent:** `agent@bitdesk.dev`
+> - **Customer:** `customer@bitdesk.dev`
 
 ---
 
@@ -132,7 +132,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Customer as 👤 Customer (Auysh)
+    actor Customer as 👤 Customer
     participant Web as 💻 BitDesk Web
     participant Server as ⚙️ BitDesk API
     participant Resend as 📨 Resend (Port 443)
@@ -141,7 +141,7 @@ sequenceDiagram
 
     Admin->>Web: Submits Public Reply on Ticket
     Web->>Server: POST /api/tickets/:id/messages
-    Server->>Resend: HTTPS POST emails.send (from: onboarding@resend.dev, replyTo: auysh1993+TKT...@gmail.com)
+    Server->>Resend: HTTPS POST emails.send (from: onboarding@resend.dev, replyTo: support+TKT...@domain.com)
     Resend-->>Gmail: Delivers formatted email with [TKT-2026-XXXXXX]
     Customer->>Gmail: Opens Gmail and clicks "Reply"
     Customer->>Gmail: Types "Site is fixed now!" and hits Send
@@ -278,9 +278,9 @@ npx tsx src/database/reset-app.ts
 
 | Role | Name | Email |
 | :--- | :--- | :--- |
-| **Admin** | Pankaj Bhandari | `pankajbhandari0714@gmail.com` |
-| **Agent** | Auysh Agent | `auysh1993@gmail.com` |
-| **Customer** | Auysh Customer | `auysh1652@gmail.com` |
+| **Admin** | Demo Admin | `admin@bitdesk.dev` |
+| **Agent** | Demo Agent | `agent@bitdesk.dev` |
+| **Customer** | Demo Customer | `customer@bitdesk.dev` |
 
 ---
 
