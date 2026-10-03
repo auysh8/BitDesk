@@ -6,10 +6,13 @@ import AppLayout from "./components/layout/AppLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import VerifyOtp from "./pages/auth/VerifyOtp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/dashboard/Dashboard";
 import TicketList from "./pages/tickets/TicketList";
 import CreateTicket from "./pages/tickets/CreateTicket";
 import TicketDetail from "./pages/tickets/TicketDetail";
+import CategoryManager from "./pages/categories/CategoryManager";
 
 export function App() {
   return (
@@ -20,6 +23,8 @@ export function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes inside AppLayout */}
           <Route element={<ProtectedRoute />}>
@@ -28,6 +33,12 @@ export function App() {
               <Route path="/tickets" element={<TicketList />} />
               <Route path="/tickets/new" element={<CreateTicket />} />
               <Route path="/tickets/:ticketId" element={<TicketDetail />} />
+
+              {/* Admin-only Categories Route */}
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route path="/categories" element={<CategoryManager />} />
+              </Route>
+
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Route>
