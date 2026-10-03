@@ -21,9 +21,31 @@ const app: Application = express();
 
 app.use(helmet());
 
+const configuredOrigins = (appConfig.CORS_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: appConfig.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/+$/, "");
+
+      // Allow configured origins, local development, or any render preview/production deployment
+      if (
+        configuredOrigins.includes(cleanOrigin) ||
+        cleanOrigin === "http://localhost:5173" ||
+        cleanOrigin === "http://localhost:3000" ||
+        cleanOrigin.endsWith(".onrender.com")
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
