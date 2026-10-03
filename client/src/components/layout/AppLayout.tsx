@@ -34,7 +34,7 @@ export const AppLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-100/75 text-slate-900">
+    <div className="flex h-screen overflow-hidden bg-slate-100/75 text-slate-900">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -45,11 +45,11 @@ export const AppLayout: React.FC = () => {
 
       {/* Sidebar for Desktop & Mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-xs transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col bg-white shadow-xs transition-transform duration-200 ease-in-out md:static md:translate-x-0 overflow-hidden select-none ${
           sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex h-16 shrink-0 items-center justify-between px-6">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
               <ShieldCheck className="h-5 w-5" />
@@ -67,7 +67,7 @@ export const AppLayout: React.FC = () => {
           </button>
         </div>
 
-        <div className="px-4 py-3">
+        <div className="px-4 py-3 shrink-0">
           <Link
             to="/tickets/new"
             onClick={() => setSidebarOpen(false)}
@@ -78,7 +78,7 @@ export const AppLayout: React.FC = () => {
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-4 overflow-hidden">
           {links.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.path;
@@ -101,7 +101,7 @@ export const AppLayout: React.FC = () => {
         </nav>
 
         {/* Refined User Profile Card */}
-        <div className="p-3">
+        <div className="p-3 shrink-0">
           <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 p-2.5 shadow-2xs hover:bg-slate-100 transition">
             <Link
               to="/profile"
@@ -156,9 +156,9 @@ export const AppLayout: React.FC = () => {
       </aside>
 
       {/* Main Area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="flex h-16 items-center justify-between bg-white/80 backdrop-blur-md shadow-2xs px-4 md:px-8">
+        <header className="flex h-16 shrink-0 items-center justify-between bg-white/80 backdrop-blur-md shadow-2xs px-4 md:px-8 z-10">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
@@ -180,7 +180,7 @@ export const AppLayout: React.FC = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>
       </div>
