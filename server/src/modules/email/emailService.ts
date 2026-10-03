@@ -111,10 +111,19 @@ export const sendTicketEmail = async (
       // 1. Check if Resend HTTP API is configured
       const resend = getResendClient();
       if (resend) {
-        const fromSender =
-          appConfig.EMAIL_FROM && appConfig.EMAIL_FROM.includes("@")
-            ? appConfig.EMAIL_FROM
-            : "BitDesk Support <onboarding@resend.dev>";
+        // Resend requires a verified domain to send from custom addresses.
+        // For public mailboxes (@gmail.com, @yahoo, etc.) or demo domains, fall back to onboarding@resend.dev
+        let fromSender = "BitDesk Support <onboarding@resend.dev>";
+        if (
+          appConfig.EMAIL_FROM &&
+          !appConfig.EMAIL_FROM.includes("@gmail.com") &&
+          !appConfig.EMAIL_FROM.includes("@yahoo.") &&
+          !appConfig.EMAIL_FROM.includes("@hotmail.") &&
+          !appConfig.EMAIL_FROM.includes("@outlook.") &&
+          !appConfig.EMAIL_FROM.includes("@bitdesk.local")
+        ) {
+          fromSender = appConfig.EMAIL_FROM;
+        }
 
         const { data, error } = await resend.emails.send({
           from: fromSender,
