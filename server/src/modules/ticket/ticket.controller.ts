@@ -261,6 +261,15 @@ export const addTicketMessage = asyncHandler(
             if (agent)
               notifyTicketReply(ticket, agent.email, user.name, body);
           });
+        } else {
+          // If ticket is unassigned, alert administrators so the customer is not left hanging
+          User.find({ role: USER_ROLES.ADMIN }).select("email").then((admins) => {
+            for (const admin of admins) {
+              if (admin.email && admin.email !== user.email) {
+                notifyTicketReply(ticket, admin.email, `${user.name} (Customer Waiting)`, body);
+              }
+            }
+          });
         }
       } else {
         // If agent replied, notify requester
