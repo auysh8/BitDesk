@@ -34,12 +34,13 @@ app.use(
 
       const cleanOrigin = origin.replace(/\/+$/, "");
 
-      // Allow configured origins, local development, or any render preview/production deployment
+      // Allow configured origins, local development, or any render/vercel preview/production deployment
       if (
         configuredOrigins.includes(cleanOrigin) ||
         cleanOrigin === "http://localhost:5173" ||
         cleanOrigin === "http://localhost:3000" ||
-        cleanOrigin.endsWith(".onrender.com")
+        cleanOrigin.endsWith(".onrender.com") ||
+        cleanOrigin.endsWith(".vercel.app")
       ) {
         return callback(null, true);
       }
