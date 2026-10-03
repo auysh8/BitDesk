@@ -7,6 +7,7 @@ import { sendResponse } from "../../utils/apiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateOtp, verifyOtpHash } from "../../utils/otp.js";
 import { USER_ROLES } from "../../constants/roles.js";
+import { sendOtpEmail } from "../email/emailService.js";
 
 // Cookie options for secure storage
 const getCookieOptions = (): CookieOptions => ({
@@ -91,6 +92,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   console.log(`\n========================================`);
   console.log(`[AUTH] Registration OTP for ${email}: ${otp}`);
   console.log(`========================================\n`);
+
+  // Dispatch OTP email via Resend / SMTP
+  sendOtpEmail(email, name, otp, "Account Registration");
 
   return sendResponse(
     res,
@@ -227,6 +231,10 @@ export const requestLoginOtp = asyncHandler(
     console.log(`[AUTH] Login OTP for ${email || phone}: ${otp}`);
     console.log(`========================================\n`);
 
+    if (user.email) {
+      sendOtpEmail(user.email, user.name, otp, "Passwordless Sign-In");
+    }
+
     return sendResponse(res, 200, "Login OTP has been sent successfully.");
   },
 );
@@ -361,6 +369,8 @@ export const forgotPassword = asyncHandler(
     console.log(`\n========================================`);
     console.log(`[AUTH] Password Reset OTP for ${email}: ${otp}`);
     console.log(`========================================\n`);
+
+    sendOtpEmail(user.email, user.name, otp, "Password Reset");
 
     return sendResponse(
       res,

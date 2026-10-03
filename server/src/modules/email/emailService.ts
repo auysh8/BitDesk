@@ -10,6 +10,7 @@ import {
   renderTicketReplyEmail,
   renderStatusChangedEmail,
   renderTicketAssignedEmail,
+  renderOtpEmail,
 } from "./emailTemplate.js";
 
 let transporter: Transporter | null = null;
@@ -364,5 +365,92 @@ export const notifyTicketAssigned = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
+  });
+};
+
+/**
+ * Sends a one-time password (OTP) email for Registration, Passwordless Login, or Password Reset
+ */
+export const sendOtpEmail = (
+  email: string,
+  name: string,
+  otp: string,
+  purpose: string = "Verification",
+) => {
+  const subject = `Your BitDesk Verification Code: ${otp}`;
+  const html = renderOtpEmail(name, otp, purpose);
+
+  setImmediate(async () => {
+    try {
+      const resend = getResendClient();
+      if (resend) {
+        let fromSender = "BitDesk Security <onboarding@resend.dev>";
+        if (
+          appConfig.EMAIL_FROM &&
+          !appConfig.EMAIL_FROM.includes("@gmail.com") &&
+          !appConfig.EMAIL_FROM.includes("@yahoo.") &&
+          !appConfig.EMAIL_FROM.includes("@hotmail.") &&
+          !appConfig.EMAIL_FROM.includes("@outlook.") &&
+          !appConfig.EMAIL_FROM.includes("@bitdesk.local")
+        ) {
+          fromSender = appConfig.EMAIL_FROM;
+        }
+
+        const { error } = await resend.emails.send({
+          from: fromSender,
+          to: [email],
+          subject,
+          html,
+        });
+
+        if (error) {
+          console.error(`[Email Service - Resend OTP Error]:`, error.message);
+        } else {
+          console.log(`[Email Service - Resend OTP] Dispatched ${purpose} OTP to ${email}`);
+        }
+      } else if (appConfig.BREVO_API_KEY) {
+        const fromEmailMatch = (appConfig.EMAIL_FROM || "").match(/<([^>]+)>/) || [
+          null,
+          (appConfig.EMAIL_FROM || "").trim(),
+        ];
+        const fromEmail = fromEmailMatch[1] || appConfig.SMTP_USER || "security@bitdesk.local";
+
+        await fetch("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: {
+            "api-key": appConfig.BREVO_API_KEY.trim(),
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            sender: { name: "BitDesk Security", email: fromEmail },
+            to: [{ email }],
+            subject,
+            htmlContent: html,
+          }),
+        });
+        console.log(`[Email Service - Brevo OTP] Dispatched ${purpose} OTP to ${email}`);
+      } else {
+        const activeTransporter = await getTransporter();
+        const mailOptions = {
+          from: appConfig.EMAIL_FROM || '"BitDesk Security" <security@bitdesk.local>',
+          to: email,
+          subject,
+          html,
+        };
+        const info = await activeTransporter.sendMail(mailOptions);
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+          console.log(`[OTP EMAIL PREVIEW URL]: ${previewUrl}`);
+        } else {
+          console.log(`[Email Service - SMTP OTP] Dispatched ${purpose} OTP to ${email}`);
+        }
+      }
+    } catch (err: any) {
+      console.error(
+        `[Email Service] Failed to send OTP email to ${email}:`,
+        err.message,
+      );
+    }
   });
 };

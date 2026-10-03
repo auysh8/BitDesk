@@ -133,3 +133,45 @@ export const renderTicketAssignedEmail = (
   `;
   return baseLayout(content, ticketNumber);
 };
+
+export const renderOtpEmail = (
+  name: string,
+  otp: string,
+  purpose: string = "Verification",
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #172b4d; }
+    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .header { background: #0052cc; color: #ffffff; padding: 20px 24px; text-align: center; }
+    .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .content { padding: 32px 24px; text-align: center; line-height: 1.6; }
+    .otp-code { display: inline-block; font-size: 32px; font-weight: 700; letter-spacing: 8px; padding: 14px 28px; background: #e0f2fe; color: #0284c7; border-radius: 8px; font-family: 'Courier New', monospace; margin: 20px 0; border: 1px dashed #0284c7; }
+    .footer { background: #f8fafc; padding: 16px 24px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>BitDesk Security</h1>
+    </div>
+    <div class="content">
+      <p style="font-size: 15px; margin: 0 0 12px 0;">Hi <strong>${name}</strong>,</p>
+      <p style="color: #475569; margin: 0;">Use the verification code below for <strong>${purpose}</strong>:</p>
+      <div>
+        <div class="otp-code">${otp}</div>
+      </div>
+      <p style="font-size: 13px; color: #64748b; margin: 16px 0 0 0;">
+        ⏱️ This code expires in <strong>10 minutes</strong>. Never share your OTP with anyone.
+      </p>
+    </div>
+    <div class="footer">
+      BitDesk Support Ticketing System • Automated Security Notification
+    </div>
+  </div>
+</body>
+</html>
+`;
