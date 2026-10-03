@@ -163,17 +163,25 @@ export const TicketDetail: React.FC = () => {
       const el = textareaRef.current;
       const start = el.selectionStart;
       const end = el.selectionEnd;
-      const selected = replyText.substring(start, end);
-      const replacement = `${prefix}${selected || "text"}${suffix}`;
+      const rawSelected = replyText.substring(start, end);
+
+      // Handle leading and trailing whitespaces in selected text cleanly
+      const leadingMatch = rawSelected.match(/^(\s*)/);
+      const trailingMatch = rawSelected.match(/(\s*)$/);
+      const leadingSpace = leadingMatch ? leadingMatch[1] : "";
+      const trailingSpace = trailingMatch ? trailingMatch[1] : "";
+      const selected = rawSelected.trim();
+
+      const innerText = selected || "text";
+      const replacement = `${leadingSpace}${prefix}${innerText}${suffix}${trailingSpace}`;
       const newText =
         replyText.substring(0, start) + replacement + replyText.substring(end);
       setReplyText(newText);
       setTimeout(() => {
         el.focus();
-        el.setSelectionRange(
-          start + prefix.length,
-          start + prefix.length + (selected.length || 4),
-        );
+        const cursorStart = start + leadingSpace.length + prefix.length;
+        const cursorEnd = cursorStart + innerText.length;
+        el.setSelectionRange(cursorStart, cursorEnd);
       }, 0);
     }, 0);
   };
