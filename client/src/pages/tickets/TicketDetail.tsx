@@ -14,19 +14,12 @@ import {
   XCircle,
   Clock,
   PlayCircle,
-  Paperclip,
-  Bold,
-  Italic,
-  Code,
-  List,
-  Quote,
   FileText,
   Trash2,
   Download,
-  Eye,
-  Edit3,
 } from "lucide-react";
 import { MarkdownRenderer } from "../../components/common/MarkdownRenderer";
+import { RichTextEditor } from "../../components/common/RichTextEditor";
 import {
   getSocket,
   joinTicketRoom,
@@ -49,14 +42,12 @@ export const TicketDetail: React.FC = () => {
   const [isAssigning, setIsAssigning] = useState(false);
 
   const [replyText, setReplyText] = useState("");
-  const [composerMode, setComposerMode] = useState<"write" | "preview">("write");
   const [messageType, setMessageType] = useState<"public" | "internal">(
     "public",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchTicketData = async () => {
@@ -154,37 +145,7 @@ export const TicketDetail: React.FC = () => {
     }
   };
 
-  const insertMarkdown = (prefix: string, suffix: string = prefix) => {
-    if (composerMode === "preview") {
-      setComposerMode("write");
-    }
-    setTimeout(() => {
-      if (!textareaRef.current) return;
-      const el = textareaRef.current;
-      const start = el.selectionStart;
-      const end = el.selectionEnd;
-      const rawSelected = replyText.substring(start, end);
 
-      // Handle leading and trailing whitespaces in selected text cleanly
-      const leadingMatch = rawSelected.match(/^(\s*)/);
-      const trailingMatch = rawSelected.match(/(\s*)$/);
-      const leadingSpace = leadingMatch ? leadingMatch[1] : "";
-      const trailingSpace = trailingMatch ? trailingMatch[1] : "";
-      const selected = rawSelected.trim();
-
-      const innerText = selected || "text";
-      const replacement = `${leadingSpace}${prefix}${innerText}${suffix}${trailingSpace}`;
-      const newText =
-        replyText.substring(0, start) + replacement + replyText.substring(end);
-      setReplyText(newText);
-      setTimeout(() => {
-        el.focus();
-        const cursorStart = start + leadingSpace.length + prefix.length;
-        const cursorEnd = cursorStart + innerText.length;
-        el.setSelectionRange(cursorStart, cursorEnd);
-      }, 0);
-    }, 0);
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -229,7 +190,6 @@ export const TicketDetail: React.FC = () => {
       });
       setReplyText("");
       setAttachments([]);
-      setComposerMode("write");
       setMessageType(canReplyPublicly ? "public" : "internal");
       await fetchTicketData();
     } catch (err: any) {
@@ -601,100 +561,28 @@ export const TicketDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Markdown Toolbar & Attach File Action */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                <div className="flex items-center gap-1 text-slate-500">
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown("**")}
-                    title="Bold (**text**)"
-                    className="rounded p-1.5 hover:bg-slate-100 hover:text-slate-800 text-xs font-bold transition"
-                  >
-                    <Bold className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown("*")}
-                    title="Italic (*text*)"
-                    className="rounded p-1.5 hover:bg-slate-100 hover:text-slate-800 text-xs italic transition"
-                  >
-                    <Italic className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown("`")}
-                    title="Inline Code (`code`)"
-                    className="rounded p-1.5 hover:bg-slate-100 hover:text-slate-800 text-xs font-mono transition"
-                  >
-                    <Code className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown("\n- ", "")}
-                    title="Bullet List (- item)"
-                    className="rounded p-1.5 hover:bg-slate-100 hover:text-slate-800 text-xs transition"
-                  >
-                    <List className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown("\n> ", "")}
-                    title="Quote (> quote)"
-                    className="rounded p-1.5 hover:bg-slate-100 hover:text-slate-800 text-xs transition"
-                  >
-                    <Quote className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+              {/* Google Keep style Rich Text WYSIWYG Editor */}
+              <RichTextEditor
+                value={replyText}
+                onChange={setReplyText}
+                placeholder={
+                  messageType === "internal"
+                    ? "Write an internal note (only visible to support agents and admins)..."
+                    : "Type your reply to the customer..."
+                }
+                minHeight="110px"
+                disabled={isSubmitting}
+                onAttachFile={() => fileInputRef.current?.click()}
+                isUploading={isUploading}
+              />
 
-                <div className="flex items-center gap-2">
-                  {/* Write vs Live Preview Tab Switcher */}
-                  <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
-                    <button
-                      type="button"
-                      onClick={() => setComposerMode("write")}
-                      className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition ${
-                        composerMode === "write"
-                          ? "bg-white text-slate-900 shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      <Edit3 className="h-3 w-3" />
-                      Write
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setComposerMode("preview")}
-                      className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 transition ${
-                        composerMode === "preview"
-                          ? "bg-white text-blue-700 shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      <Eye className="h-3 w-3" />
-                      Preview
-                    </button>
-                  </div>
-
-                  <div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      multiple
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      disabled={isUploading}
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition"
-                    >
-                      <Paperclip className="h-3.5 w-3.5 text-slate-500" />
-                      {isUploading ? "Uploading..." : "Attach File"}
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                multiple
+                className="hidden"
+              />
 
               {/* Uploaded Attachments Badges */}
               {attachments.length > 0 && (
@@ -715,42 +603,6 @@ export const TicketDetail: React.FC = () => {
                       </button>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Composer Input: Write or Preview */}
-              {composerMode === "write" ? (
-                <textarea
-                  ref={textareaRef}
-                  rows={4}
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder={
-                    messageType === "internal"
-                      ? "Write an internal note (only visible to support agents and admins)..."
-                      : "Type your reply to the customer (Markdown supported: **bold**, *italic*, `code`, > quote, - list)..."
-                  }
-                  className={`w-full rounded-lg border p-3 text-sm focus:outline-none ${
-                    messageType === "internal"
-                      ? "border-amber-300 bg-amber-50/30 focus:border-amber-500"
-                      : "border-slate-300 focus:border-blue-600"
-                  }`}
-                />
-              ) : (
-                <div
-                  className={`min-h-[105px] w-full rounded-lg border p-3.5 ${
-                    messageType === "internal"
-                      ? "border-amber-300 bg-amber-50/30"
-                      : "border-slate-200 bg-slate-50/60"
-                  }`}
-                >
-                  {replyText.trim() ? (
-                    <MarkdownRenderer content={replyText} />
-                  ) : (
-                    <p className="text-sm italic text-slate-400">
-                      Nothing to preview yet. Switch to Write to compose your message.
-                    </p>
-                  )}
                 </div>
               )}
 
