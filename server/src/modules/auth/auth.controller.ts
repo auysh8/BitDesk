@@ -8,6 +8,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateOtp, verifyOtpHash } from "../../utils/otp.js";
 import { USER_ROLES } from "../../constants/roles.js";
 import { sendOtpEmail } from "../email/emailService.js";
+import { sendOtpSms } from "../sms/smsService.js";
 
 // Cookie options for secure storage
 const getCookieOptions = (): CookieOptions => ({
@@ -93,8 +94,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   console.log(`[AUTH] Registration OTP for ${email}: ${otp}`);
   console.log(`========================================\n`);
 
-  // Dispatch OTP email via Resend / SMTP
+  // Dispatch OTP email via Resend / SMTP / Relay and SMS via Twilio
   sendOtpEmail(email, name, otp, "Account Registration");
+  if (phone) {
+    sendOtpSms(phone, otp, "Account Registration");
+  }
 
   return sendResponse(
     res,
@@ -263,6 +267,9 @@ export const requestLoginOtp = asyncHandler(
 
     if (user.email) {
       sendOtpEmail(user.email, user.name, otp, "Passwordless Sign-In");
+    }
+    if (user.phone) {
+      sendOtpSms(user.phone, otp, "Sign-In");
     }
 
     return sendResponse(res, 200, "Login OTP has been sent successfully.");
@@ -491,6 +498,9 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
   console.log(`========================================\n`);
 
   sendOtpEmail(email, user.name, otp, "Account Verification");
+  if (user.phone) {
+    sendOtpSms(user.phone, otp, "Account Verification");
+  }
 
   return sendResponse(res, 200, "A fresh verification code has been dispatched to your email.");
 });

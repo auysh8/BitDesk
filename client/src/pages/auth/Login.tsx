@@ -67,9 +67,13 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await axiosClient.post("/auth/login-otp", { email });
+      const trimmed = email.trim();
+      const payload = trimmed.includes("@")
+        ? { email: trimmed }
+        : { phone: trimmed };
+      await axiosClient.post("/auth/login-otp", payload);
       setOtpSent(true);
-      setSuccessMsg("Verification code sent to your email.");
+      setSuccessMsg("Verification code dispatched to your email & mobile phone.");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to request OTP.");
     } finally {
@@ -84,10 +88,11 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const res = await axiosClient.post("/auth/verify-login-otp", {
-        email,
-        otp,
-      });
+      const trimmed = email.trim();
+      const payload = trimmed.includes("@")
+        ? { email: trimmed, otp }
+        : { phone: trimmed, otp };
+      const res = await axiosClient.post("/auth/verify-login-otp", payload);
       const { accessToken, user } = res.data.data;
       login(accessToken, user);
       navigate("/dashboard");
@@ -272,17 +277,17 @@ export const Login: React.FC = () => {
         >
           <div>
             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
-              Email Address
+              Email Address or Mobile Phone
             </label>
             <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
               <Mail className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
               <input
-                type="email"
+                type="text"
                 required
                 disabled={otpSent}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
+                placeholder="name@company.com or +919876543210"
                 className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
               />
             </div>

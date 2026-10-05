@@ -30,6 +30,11 @@ const appConfig = {
   SMTP_USER: process.env.SMTP_USER || "",
   SMTP_PASS: process.env.SMTP_PASS || "",
   EMAIL_FROM: process.env.EMAIL_FROM || "BitDesk Support <support@bitdesk.local>",
+
+  // SMS / Twilio
+  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || "",
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || "",
+  TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || "",
 };
 
 export default appConfig;
