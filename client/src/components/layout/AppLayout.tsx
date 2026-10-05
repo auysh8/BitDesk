@@ -1,7 +1,9 @@
 // client/src/components/layout/AppLayout.tsx
-import React, { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import { getSocket } from "../../api/socket";
 import {
   LayoutDashboard,
   Ticket,
@@ -11,12 +13,63 @@ import {
   Menu,
   X,
   ShieldCheck,
+  Search,
 } from "lucide-react";
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Subscribe to WebSocket connection status
+  useEffect(() => {
+    const socket = getSocket();
+    setIsSocketConnected(socket.connected);
+
+    const onConnect = () => setIsSocketConnected(true);
+    const onDisconnect = () => setIsSocketConnected(false);
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, []);
+
+  // Global Keyboard Shortcut: ⌘K or Ctrl+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/tickets?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      searchInputRef.current?.blur();
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.info("You have signed out of BitDesk.");
+  };
 
   const links = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -33,80 +86,105 @@ export const AppLayout: React.FC = () => {
       : []),
   ];
 
+  const isMac =
+    typeof window !== "undefined" &&
+    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100/75 text-slate-900">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-900/40 md:hidden backdrop-blur-xs"
+          className="fixed inset-0 z-40 bg-slate-900/40 md:hidden backdrop-blur-xs transition-opacity duration-200"
+          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar for Desktop & Mobile */}
+      {/* Sidebar for Desktop & Mobile Drawer */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col bg-white shadow-xs transition-transform duration-200 ease-in-out md:static md:translate-x-0 overflow-hidden select-none ${
           sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between px-6">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
+        {/* Branding Header */}
+        <div className="flex h-16 shrink-0 items-center justify-between px-6 border-b border-slate-100/80">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2.5 group focus-visible:outline-none"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900">
-              BitDesk
-            </span>
-          </div>
+            <div>
+              <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight">
+                BitDesk
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
+                Support Cloud
+              </span>
+            </div>
+          </Link>
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 md:hidden"
+            aria-label="Close sidebar menu"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 md:hidden transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
+        {/* Primary CTA */}
         <div className="px-4 py-3 shrink-0">
           <Link
             to="/tickets/new"
             onClick={() => setSidebarOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 transition"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-blue-600/50"
           >
             <PlusCircle className="h-4 w-4" />
             New Ticket
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4 overflow-hidden">
+        {/* Navigation List */}
+        <nav className="flex-1 space-y-1 px-4 overflow-hidden py-1">
           {links.map((item) => {
             const Icon = item.icon;
-            const active = location.pathname === item.path;
+            const active =
+              location.pathname === item.path ||
+              (item.path !== "/dashboard" &&
+                location.pathname.startsWith(item.path));
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 ${
                   active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-blue-50/90 text-blue-700 font-semibold shadow-2xs ring-1 ring-blue-600/10"
+                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {item.name}
+                <Icon
+                  className={`h-4 w-4 transition-colors ${
+                    active ? "text-blue-600" : "text-slate-400"
+                  }`}
+                />
+                <span>{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Refined User Profile Card */}
-        <div className="p-3 shrink-0">
-          <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 p-2.5 shadow-2xs hover:bg-slate-100 transition">
+        {/* User Profile Footer Card */}
+        <div className="p-3 shrink-0 border-t border-slate-100/80">
+          <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 p-2.5 shadow-2xs hover:bg-slate-100 transition-colors">
             <Link
               to="/profile"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition"
+              className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-90 transition-opacity"
               title="View & Edit Account Profile"
             >
               {/* User Avatar with Role Colors */}
@@ -129,12 +207,12 @@ export const AppLayout: React.FC = () => {
                 </p>
                 <div className="mt-0.5">
                   <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    className={`inline-block rounded-full px-2 py-0.2 text-[10px] font-bold uppercase tracking-wider ${
                       user?.role === "admin"
-                        ? "bg-purple-100 text-purple-700"
+                        ? "bg-purple-100/80 text-purple-700"
                         : user?.role === "agent"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-slate-200 text-slate-700"
+                          ? "bg-blue-100/80 text-blue-700"
+                          : "bg-slate-200/80 text-slate-700"
                     }`}
                   >
                     {user?.role}
@@ -145,9 +223,10 @@ export const AppLayout: React.FC = () => {
 
             {/* Logout Button */}
             <button
-              onClick={() => logout()}
+              onClick={handleLogout}
               title="Sign Out"
-              className="rounded-xl p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition shrink-0"
+              aria-label="Sign Out"
+              className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors shrink-0"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -155,26 +234,89 @@ export const AppLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Area */}
+      {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="flex h-16 shrink-0 items-center justify-between bg-white/80 backdrop-blur-md shadow-2xs px-4 md:px-8 z-10">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
-          >
-            {sidebarOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
-          <div className="text-sm font-medium text-slate-500">
-            Support Ticketing & Email System
-          </div>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-4 bg-white/85 backdrop-blur-md shadow-2xs px-4 md:px-8 z-10 border-b border-slate-100/60">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              Role: <strong className="text-blue-600 capitalize">{user?.role}</strong>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle navigation drawer"
+              className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 md:hidden transition-colors"
+            >
+              {sidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+
+            {/* Global Search Input with Keyboard Shortcut */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative hidden sm:flex items-center w-64 md:w-80"
+            >
+              <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tickets, customers..."
+                className="w-full rounded-xl bg-slate-100/80 pl-9 pr-14 py-1.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+              />
+              <kbd className="absolute right-2.5 inline-flex items-center rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 shadow-3xs pointer-events-none">
+                {isMac ? "⌘K" : "Ctrl+K"}
+              </kbd>
+            </form>
+          </div>
+
+          {/* Right Header Status Group */}
+          <div className="flex items-center gap-3">
+            {/* Live Real-time Socket Indicator */}
+            <div
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                isSocketConnected
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+                  : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+              }`}
+              title={
+                isSocketConnected
+                  ? "WebSocket connected: Real-time ticket synchronization active"
+                  : "Connecting to WebSocket server..."
+              }
+            >
+              {isSocketConnected ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[11px] font-semibold tracking-wide hidden sm:inline">
+                    Live Sync
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span className="text-[11px] font-semibold tracking-wide hidden sm:inline">
+                    Connecting...
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* User Role Tag */}
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                user?.role === "admin"
+                  ? "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20"
+                  : user?.role === "agent"
+                    ? "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20"
+                    : "bg-slate-100 text-slate-700 ring-1 ring-slate-400/20"
+              }`}
+            >
+              {user?.role}
             </span>
           </div>
         </header>

@@ -17,12 +17,14 @@ import CategoryManager from "./pages/categories/CategoryManager";
 import UserManager from "./pages/users/UserManager";
 import UserProfile from "./pages/profile/UserProfile";
 
+import { ToastProvider } from "./context/ToastContext";
 import ServerColdStartIndicator from "./components/ServerColdStartIndicator";
 
 export function App() {
   return (
     <AuthProvider>
-      <ServerColdStartIndicator />
+      <ToastProvider>
+        <ServerColdStartIndicator />
       <BrowserRouter>
         <Routes>
           {/* Public Auth Routes */}
@@ -56,6 +58,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }

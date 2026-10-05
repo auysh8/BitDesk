@@ -2,11 +2,13 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
-import { Lock, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
+import { Lock, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 
 export const ResetPassword: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState(location.state?.email || "");
   const [otp, setOtp] = useState("");
@@ -26,12 +28,14 @@ export const ResetPassword: React.FC = () => {
         newPassword,
       });
 
-      alert(
+      toast.success(
         "Password reset successfully! Please sign in with your new password.",
       );
       navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to reset password.");
+      const msg = err.response?.data?.message || "Failed to reset password.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +116,17 @@ export const ResetPassword: React.FC = () => {
             disabled={isLoading}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors border-0"
           >
-            {isLoading ? "Updating..." : "Reset Password"}
-            <ArrowRight className="h-4 w-4" />
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                Reset Password
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </button>
         </form>
 
