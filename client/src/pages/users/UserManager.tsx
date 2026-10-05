@@ -21,7 +21,8 @@ interface UserItem {
   email: string;
   phone?: string;
   role: "admin" | "agent" | "customer";
-  status: "active" | "suspended";
+  status?: "active" | "suspended";
+  isActive?: boolean;
   isApproved?: boolean;
   createdAt: string;
 }
@@ -87,11 +88,17 @@ export const UserManager: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (userId: string, currentStatus: string) => {
+  const isUserActive = (u: UserItem): boolean => {
+    if (u.isActive !== undefined) return Boolean(u.isActive);
+    if (u.status !== undefined) return u.status === "active";
+    return true;
+  };
+
+  const handleToggleStatus = async (userId: string, currentlyActive: boolean) => {
     try {
       await axiosClient.patch(`/users/${userId}/status`);
       toast.success(
-        `Account ${currentStatus === "active" ? "suspended" : "activated"}`,
+        `Account ${currentlyActive ? "suspended" : "activated"} successfully`,
       );
       await fetchUsers();
     } catch (err: any) {
@@ -298,6 +305,7 @@ export const UserManager: React.FC = () => {
                 displayedUsers.map((u) => {
                   const isCurrent = u._id === currentUser?._id;
                   const isPending = u.isApproved === false;
+                  const active = isUserActive(u);
 
                   return (
                     <tr
@@ -370,12 +378,12 @@ export const UserManager: React.FC = () => {
                         ) : (
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              u.status === "active"
+                              active
                                 ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
                                 : "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20"
                             }`}
                           >
-                            {u.status === "active" ? (
+                            {active ? (
                               <>
                                 <CheckCircle2 className="h-3 w-3" /> Active
                               </>
@@ -405,14 +413,14 @@ export const UserManager: React.FC = () => {
                           </button>
                         ) : !isCurrent ? (
                           <button
-                            onClick={() => handleToggleStatus(u._id, u.status)}
+                            onClick={() => handleToggleStatus(u._id, active)}
                             className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-                              u.status === "active"
+                              active
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {u.status === "active" ? "Suspend" : "Activate"}
+                            {active ? "Suspend" : "Activate"}
                           </button>
                         ) : null}
                       </td>

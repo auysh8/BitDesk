@@ -96,8 +96,15 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+// Virtual computed status string ("active" | "suspended")
+userSchema.virtual("status").get(function () {
+  return this.isActive !== false ? "active" : "suspended";
+});
 
 // Hash password before saving if modified
 userSchema.pre("save", async function () {
