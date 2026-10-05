@@ -632,9 +632,9 @@ export const TicketDetail: React.FC = () => {
           {/* Reply Composer Card - Floating Sticky */}
           <div
             onKeyDown={handleKeyDown}
-            className="sticky bottom-4 z-20 rounded-2xl bg-white/95 backdrop-blur-md p-5 sm:p-6 shadow-xl ring-1 ring-slate-900/5 space-y-4 transition-all duration-200"
+            className="sticky -bottom-2 md:-bottom-5 z-20 rounded-2xl bg-white/95 backdrop-blur-md p-4 sm:p-5 shadow-xl ring-1 ring-slate-900/5 space-y-3 transition-all duration-200"
           >
-            <form onSubmit={handleSendReply} className="space-y-4">
+            <form onSubmit={handleSendReply} className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Compose Response
@@ -716,7 +716,7 @@ export const TicketDetail: React.FC = () => {
                     ? "Write an internal note (only visible to support agents and admins)..."
                     : "Type your reply to the customer..."
                 }
-                minHeight="110px"
+                minHeight="85px"
                 disabled={isSubmitting}
                 onAttachFile={() => fileInputRef.current?.click()}
                 isUploading={isUploading}
