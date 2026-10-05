@@ -248,9 +248,21 @@ export const loginPassword = asyncHandler(
 export const requestLoginOtp = asyncHandler(
   async (req: Request, res: Response) => {
     const { email, phone } = req.body;
-
-    const query = email ? { email } : { phone };
-    const user = await User.findOne(query);
+    let user;
+    if (email) {
+      user = await User.findOne({ email });
+    } else if (phone) {
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, "").trim();
+      const clean10 = cleanPhone.slice(-10);
+      user = await User.findOne({
+        $or: [
+          { phone: cleanPhone },
+          { phone: clean10 },
+          { phone: `+91${clean10}` },
+          { phone: `91${clean10}` },
+        ],
+      });
+    }
 
     if (!user) {
       throw new ApiError(404, "No account found with those credentials.");
@@ -284,8 +296,21 @@ export const verifyLoginOtp = asyncHandler(
   async (req: Request, res: Response) => {
     const { email, phone, otp } = req.body;
 
-    const query = email ? { email } : { phone };
-    const user = await User.findOne(query).select("+otpHash +otpExpiresAt");
+    let user;
+    if (email) {
+      user = await User.findOne({ email }).select("+otpHash +otpExpiresAt");
+    } else if (phone) {
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, "").trim();
+      const clean10 = cleanPhone.slice(-10);
+      user = await User.findOne({
+        $or: [
+          { phone: cleanPhone },
+          { phone: clean10 },
+          { phone: `+91${clean10}` },
+          { phone: `91${clean10}` },
+        ],
+      }).select("+otpHash +otpExpiresAt");
+    }
 
     if (!user) {
       throw new ApiError(404, "User not found.");

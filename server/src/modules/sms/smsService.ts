@@ -23,7 +23,7 @@ export const formatPhoneNumber = (phone: string): string => {
 };
 
 /**
- * Sends a 6-digit OTP SMS using Twilio (Verify API for Trial or Messages API)
+ * Sends a 6-digit OTP SMS via Fast2SMS (Indian carrier) or Twilio
  */
 export const sendOtpSms = async (
   phone: string,
@@ -33,6 +33,41 @@ export const sendOtpSms = async (
   if (!phone) return false;
 
   const formattedPhone = formatPhoneNumber(phone);
+  const clean10Digits = formattedPhone.slice(-10);
+
+  // 1. Fast2SMS Integration (Instant Indian SMS with zero template approval required)
+  if (appConfig.FAST2SMS_API_KEY) {
+    try {
+      const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+        method: "POST",
+        headers: {
+          authorization: appConfig.FAST2SMS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          route: "otp",
+          variables_values: otp,
+          numbers: clean10Digits,
+        }),
+      });
+
+      const data: any = await res.json().catch(() => null);
+      if (data?.return) {
+        console.log(
+          `[SMS Service - Fast2SMS] Dispatched ${purpose} SMS to +91${clean10Digits}`,
+        );
+        return true;
+      }
+      console.warn(
+        `[SMS Service - Fast2SMS Error]:`,
+        data?.message || "Failed to deliver SMS",
+      );
+    } catch (err: any) {
+      console.error(`[SMS Service - Fast2SMS Network Error]:`, err.message);
+    }
+  }
+
+  // 2. Twilio Integration
   const {
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
@@ -40,10 +75,9 @@ export const sendOtpSms = async (
     TWILIO_VERIFY_SERVICE_SID,
   } = appConfig;
 
-  // If Twilio credentials are not set, log safely and return
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
     console.log(
-      `[SMS Service - Dev Log] Twilio not configured. OTP for ${formattedPhone}: ${otp}`,
+      `[SMS Service - Dev Log] SMS Provider not active. Code for ${formattedPhone}: ${otp}`,
     );
     return false;
   }
@@ -53,7 +87,7 @@ export const sendOtpSms = async (
   ).toString("base64");
 
   try {
-    // 1. If Twilio Verify Service SID is provided (Bypasses Trial SMS template restrictions)
+    // 2a. Twilio Verify Service (If configured)
     if (TWILIO_VERIFY_SERVICE_SID) {
       const verifyRes = await fetch(
         `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/Verifications`,
@@ -79,62 +113,51 @@ export const sendOtpSms = async (
         );
         return true;
       }
-
       console.warn(
-        `[SMS Service - Twilio Verify] Verify API failed (${verifyData?.message}), falling back to Messages API...`,
+        `[SMS Service - Twilio Verify]: ${verifyData?.message || "Verification request failed"}`,
       );
     }
 
-    // 2. Standard Twilio Programmable Messages API
-    if (!TWILIO_PHONE_NUMBER) {
-      console.warn(
-        `[SMS Service] TWILIO_PHONE_NUMBER is required when not using Verify Service SID.`,
-      );
-      return false;
-    }
+    // 2b. Twilio Programmable Messages API
+    if (TWILIO_PHONE_NUMBER) {
+      const messageBody = `Your BitDesk ${purpose} code is: ${otp}. Valid for 10 minutes.`;
 
-    const messageBody = `Your BitDesk ${purpose} code is: ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
-
-    const res = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-          "Content-Type": "application/x-www-form-urlencoded",
+      const res = await fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${authHeader}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            To: formattedPhone,
+            From: TWILIO_PHONE_NUMBER,
+            Body: messageBody,
+          }),
         },
-        body: new URLSearchParams({
-          To: formattedPhone,
-          From: TWILIO_PHONE_NUMBER,
-          Body: messageBody,
-        }),
-      },
-    );
+      );
 
-    const data: any = await res.json().catch(() => null);
+      const data: any = await res.json().catch(() => null);
 
-    if (!res.ok) {
+      if (res.ok) {
+        console.log(
+          `[SMS Service - Twilio] Dispatched ${purpose} SMS to ${formattedPhone} (SID: ${data?.sid})`,
+        );
+        return true;
+      }
+
       console.error(
         `[SMS Service - Twilio Error] Failed sending OTP to ${formattedPhone}:`,
         data?.message || res.statusText,
       );
-      if (data?.message?.includes("predefined SMS templates")) {
-        console.warn(
-          `\n[TWILIO TRIAL NOTICE] Twilio Trial accounts restrict custom message text bodies.\nTo send OTPs on a trial account, create a free Verify Service in Twilio Console (Verify -> Services -> Create Service), enable 'Custom Verification Code', and add TWILIO_VERIFY_SERVICE_SID=VA... to your .env!\n`,
-        );
-      }
-      return false;
     }
-
-    console.log(
-      `[SMS Service - Twilio] Dispatched ${purpose} SMS to ${formattedPhone} (SID: ${data?.sid})`,
-    );
-    return true;
   } catch (err: any) {
     console.error(
-      `[SMS Service - Network Error] Failed sending SMS to ${formattedPhone}:`,
+      `[SMS Service - Twilio Network Error] Failed sending SMS to ${formattedPhone}:`,
       err.message,
     );
-    return false;
   }
+
+  return false;
 };
