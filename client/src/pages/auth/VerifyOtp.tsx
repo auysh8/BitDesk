@@ -162,11 +162,11 @@ export const VerifyOtp: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Verify Identity"
+      title="Verify code"
       subtitle={
         email
-          ? `Enter the 6-digit security code sent to ${email}`
-          : "Enter the 6-digit authentication code sent to your email"
+          ? `Code sent to ${email}`
+          : "Enter the 6-digit verification code"
       }
     >
       {error && (
@@ -200,7 +200,7 @@ export const VerifyOtp: React.FC = () => {
         {/* 6-Digit Auto-Advancing Input Array */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 text-center mb-3">
-            Enter 6-Digit Code
+            Enter 6-digit code
           </label>
           <div className="flex items-center justify-center gap-2 sm:gap-2.5">
             {otpDigits.map((digit, idx) => (
@@ -230,11 +230,11 @@ export const VerifyOtp: React.FC = () => {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Verifying Code...</span>
+              <span>Verifying...</span>
             </>
           ) : (
             <>
-              <span>Complete Sign In</span>
+              <span>Verify & Continue</span>
               <ArrowRight className="h-4 w-4" />
             </>
           )}
@@ -242,22 +242,19 @@ export const VerifyOtp: React.FC = () => {
       </form>
 
       {/* Resend Cooldown Section */}
-      <div className="pt-2 text-center border-t border-slate-100">
-        <p className="text-xs text-slate-500">
-          Didn't receive the verification code?
-        </p>
+      <div className="text-center">
         <button
           type="button"
           disabled={resendCooldown > 0 || isResending}
           onClick={handleResendOtp}
-          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${isResending ? "animate-spin" : ""}`}
           />
           {resendCooldown > 0
-            ? `Resend code in ${resendCooldown}s`
-            : "Resend verification code"}
+            ? `Resend in ${resendCooldown}s`
+            : "Resend code"}
         </button>
       </div>
 
@@ -266,7 +263,7 @@ export const VerifyOtp: React.FC = () => {
           to="/login"
           className="font-semibold text-slate-600 hover:text-slate-900 transition-colors"
         >
-          Return to password sign in
+          Back to sign in
         </Link>
       </div>
     </AuthLayout>

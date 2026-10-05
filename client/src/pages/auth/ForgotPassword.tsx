@@ -33,8 +33,8 @@ export const ForgotPassword: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter your email to receive a 6-digit password reset verification code"
+      title="Forgot password"
+      subtitle="Enter your email to receive a reset code."
     >
       {error && (
         <div className="flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
@@ -66,7 +66,7 @@ export const ForgotPassword: React.FC = () => {
           disabled={isLoading}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 disabled:opacity-50 transition-colors border-0 cursor-pointer"
         >
-          {isLoading ? "Sending OTP..." : "Send Reset Code"}
+          {isLoading ? "Sending..." : "Send code"}
           <ArrowRight className="h-4 w-4" />
         </button>
       </form>
@@ -77,7 +77,7 @@ export const ForgotPassword: React.FC = () => {
           className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Sign in
+          Back to sign in
         </Link>
       </div>
     </AuthLayout>

@@ -52,8 +52,8 @@ export const Register: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Create an Account"
-      subtitle="Register to start submitting and managing support tickets"
+      title="Create account"
+      subtitle="Enter your details to get started."
     >
 
         {error && (
@@ -142,13 +142,13 @@ export const Register: React.FC = () => {
               onChange={(e) => setRole(e.target.value)}
               className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-3.5 text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
             >
-              <option value="customer">Customer (Raise & manage own tickets)</option>
-              <option value="agent">Support Agent (Requires Admin approval)</option>
-              <option value="admin">Administrator (Requires Admin approval)</option>
+              <option value="customer">Customer</option>
+              <option value="agent">Support Agent</option>
+              <option value="admin">Administrator</option>
             </select>
             {role !== "customer" && (
-              <p className="mt-2 text-xs text-amber-800 bg-amber-50/90 p-2.5 rounded-xl border-0 shadow-2xs">
-                ⚠️ Staff accounts (Agent/Admin) require confirmation from an administrator before you can log in.
+              <p className="mt-1.5 text-xs text-slate-500">
+                Staff roles require administrator approval before login.
               </p>
             )}
           </div>
@@ -156,9 +156,9 @@ export const Register: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors border-0"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors border-0 cursor-pointer"
           >
-            {isLoading ? "Creating account..." : "Register & Get OTP"}
+            {isLoading ? "Creating account..." : "Create account"}
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>

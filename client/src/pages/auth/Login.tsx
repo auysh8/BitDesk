@@ -89,8 +89,8 @@ export const Login: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Sign In to BitDesk"
-      subtitle="Sign in to manage and resolve support tickets with real-time sync"
+      title="Sign in"
+      subtitle="Welcome back. Enter your details to continue."
     >
       {/* Login Method Toggle */}
       <div className="relative flex rounded-2xl bg-slate-100/90 p-1 text-sm font-medium">
@@ -113,7 +113,7 @@ export const Login: React.FC = () => {
               transition={{ type: "spring", stiffness: 450, damping: 35 }}
             />
           )}
-          <span className="relative z-10">Password Login</span>
+          <span className="relative z-10">Password</span>
         </button>
         <button
           type="button"
@@ -134,7 +134,7 @@ export const Login: React.FC = () => {
               transition={{ type: "spring", stiffness: 450, damping: 35 }}
             />
           )}
-          <span className="relative z-10">OTP Login</span>
+          <span className="relative z-10">OTP</span>
         </button>
       </div>
 
@@ -278,36 +278,20 @@ export const Login: React.FC = () => {
           </form>
         )}
 
-        {/* Cold Start Notice */}
-        {isLoading && (
-          <div className="mt-3 rounded-2xl bg-amber-50/90 p-3 text-center text-xs font-medium text-amber-700 shadow-2xs border-0 animate-pulse">
-            ⚡ Connecting to Render backend... If the server was sleeping, cold boot takes ~30–40s. Please wait!
-          </div>
-        )}
-
-        {/* Credentials / Testing Callout */}
-        <div className="mt-6 rounded-2xl bg-slate-100/70 p-4 text-xs text-slate-600 border-0 shadow-2xs">
-          <div className="flex items-center justify-between font-semibold text-slate-800">
-            <span>Demo Admin Account</span>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("admin@bitdesk.dev");
-                setPassword("Password123!");
-                setLoginMethod("password");
-              }}
-              className="text-blue-600 hover:text-blue-800 font-medium underline"
-            >
-              Auto-fill Admin
-            </button>
-          </div>
-          <div className="mt-1.5 font-mono text-[11px] text-slate-700 bg-white rounded-xl p-2 select-all shadow-2xs border-0">
-            admin@bitdesk.dev &bull; Password123!
-          </div>
-          <p className="mt-2.5 text-[11px] text-slate-500 leading-relaxed">
-            &bull; Log in as Demo Admin to approve pending agent signups, manage categories, and promote users.<br />
-            &bull; <strong>To test with your own Gmail:</strong> Register an account with your real Gmail address, then log in as Demo Admin to approve or promote yourself to Admin/Agent!
-          </p>
+        {/* Quick Demo Access */}
+        <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          <span>Demo: <span className="font-mono text-slate-700">admin@bitdesk.dev</span></span>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail("admin@bitdesk.dev");
+              setPassword("Password123!");
+              setLoginMethod("password");
+            }}
+            className="font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+          >
+            Auto-fill
+          </button>
         </div>
 
         <div className="mt-5 text-center text-sm text-slate-500">
@@ -316,7 +300,7 @@ export const Login: React.FC = () => {
             to="/register"
             className="font-semibold text-blue-600 hover:underline"
           >
-            Register now
+            Sign up
           </Link>
         </div>
     </AuthLayout>

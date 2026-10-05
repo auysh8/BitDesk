@@ -44,8 +44,8 @@ export const ResetPassword: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Reset Password"
-      subtitle="Enter the 6-digit OTP sent to your email and set your new password"
+      title="Reset password"
+      subtitle="Enter your verification code and new password."
     >
       {error && (
         <div className="flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
@@ -71,7 +71,7 @@ export const ResetPassword: React.FC = () => {
 
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
-            6-Digit OTP Code
+            6-Digit Code
           </label>
           <input
             type="text"
@@ -110,11 +110,11 @@ export const ResetPassword: React.FC = () => {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Updating...
+              Resetting...
             </>
           ) : (
             <>
-              Reset Password
+              Reset password
               <ArrowRight className="h-4 w-4" />
             </>
           )}
@@ -122,12 +122,11 @@ export const ResetPassword: React.FC = () => {
       </form>
 
       <div className="mt-6 text-center text-sm text-slate-500">
-        Remember your password?{" "}
         <Link
           to="/login"
           className="font-semibold text-blue-600 hover:underline"
         >
-          Sign In
+          Back to sign in
         </Link>
       </div>
     </AuthLayout>
