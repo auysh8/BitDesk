@@ -23,7 +23,7 @@ export const formatPhoneNumber = (phone: string): string => {
 };
 
 /**
- * Sends a 6-digit OTP SMS using Twilio REST API
+ * Sends a 6-digit OTP SMS using Twilio (Verify API for Trial or Messages API)
  */
 export const sendOtpSms = async (
   phone: string,
@@ -33,21 +33,65 @@ export const sendOtpSms = async (
   if (!phone) return false;
 
   const formattedPhone = formatPhoneNumber(phone);
-  const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER } =
-    appConfig;
+  const {
+    TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN,
+    TWILIO_PHONE_NUMBER,
+    TWILIO_VERIFY_SERVICE_SID,
+  } = appConfig;
 
   // If Twilio credentials are not set, log safely and return
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
     console.log(
       `[SMS Service - Dev Log] Twilio not configured. OTP for ${formattedPhone}: ${otp}`,
     );
     return false;
   }
 
+  const authHeader = Buffer.from(
+    `${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`,
+  ).toString("base64");
+
   try {
-    const authHeader = Buffer.from(
-      `${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`,
-    ).toString("base64");
+    // 1. If Twilio Verify Service SID is provided (Bypasses Trial SMS template restrictions)
+    if (TWILIO_VERIFY_SERVICE_SID) {
+      const verifyRes = await fetch(
+        `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/Verifications`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${authHeader}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            To: formattedPhone,
+            Channel: "sms",
+            CustomCode: otp,
+          }),
+        },
+      );
+
+      const verifyData: any = await verifyRes.json().catch(() => null);
+
+      if (verifyRes.ok) {
+        console.log(
+          `[SMS Service - Twilio Verify] Dispatched ${purpose} OTP to ${formattedPhone} (SID: ${verifyData?.sid})`,
+        );
+        return true;
+      }
+
+      console.warn(
+        `[SMS Service - Twilio Verify] Verify API failed (${verifyData?.message}), falling back to Messages API...`,
+      );
+    }
+
+    // 2. Standard Twilio Programmable Messages API
+    if (!TWILIO_PHONE_NUMBER) {
+      console.warn(
+        `[SMS Service] TWILIO_PHONE_NUMBER is required when not using Verify Service SID.`,
+      );
+      return false;
+    }
 
     const messageBody = `Your BitDesk ${purpose} code is: ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
 
@@ -74,9 +118,9 @@ export const sendOtpSms = async (
         `[SMS Service - Twilio Error] Failed sending OTP to ${formattedPhone}:`,
         data?.message || res.statusText,
       );
-      if (data?.code === 21608) {
+      if (data?.message?.includes("predefined SMS templates")) {
         console.warn(
-          `[SMS Service - Twilio Trial Warning] The number ${formattedPhone} is unverified on Twilio Trial. Verify it at https://console.twilio.com/us1/develop/phone-numbers/manage/verified`,
+          `\n[TWILIO TRIAL NOTICE] Twilio Trial accounts restrict custom message text bodies.\nTo send OTPs on a trial account, create a free Verify Service in Twilio Console (Verify -> Services -> Create Service), enable 'Custom Verification Code', and add TWILIO_VERIFY_SERVICE_SID=VA... to your .env!\n`,
         );
       }
       return false;
