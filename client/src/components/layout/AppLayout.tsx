@@ -1,6 +1,5 @@
-// client/src/components/layout/AppLayout.tsx
-import React, { useState, useEffect, useRef } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { getSocket } from "../../api/socket";
@@ -13,19 +12,15 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Search,
 } from "lucide-react";
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Subscribe to WebSocket connection status
   useEffect(() => {
@@ -43,28 +38,6 @@ export const AppLayout: React.FC = () => {
       socket.off("disconnect", onDisconnect);
     };
   }, []);
-
-  // Global Keyboard Shortcut: ⌘K or Ctrl+K to focus search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/tickets?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
-      searchInputRef.current?.blur();
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -85,10 +58,6 @@ export const AppLayout: React.FC = () => {
         ]
       : []),
   ];
-
-  const isMac =
-    typeof window !== "undefined" &&
-    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100/75 text-slate-900">
@@ -250,25 +219,6 @@ export const AppLayout: React.FC = () => {
                 <Menu className="h-5 w-5" />
               )}
             </button>
-
-            {/* Global Search Input with Keyboard Shortcut */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="relative hidden sm:flex items-center w-64 md:w-80"
-            >
-              <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tickets, customers..."
-                className="w-full rounded-xl bg-slate-100/80 pl-9 pr-14 py-1.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-              />
-              <kbd className="absolute right-2.5 inline-flex items-center rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 shadow-3xs pointer-events-none">
-                {isMac ? "⌘K" : "Ctrl+K"}
-              </kbd>
-            </form>
           </div>
 
           {/* Right Header Status Group */}
@@ -305,19 +255,6 @@ export const AppLayout: React.FC = () => {
                 </>
               )}
             </div>
-
-            {/* User Role Tag */}
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-                user?.role === "admin"
-                  ? "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20"
-                  : user?.role === "agent"
-                    ? "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20"
-                    : "bg-slate-100 text-slate-700 ring-1 ring-slate-400/20"
-              }`}
-            >
-              {user?.role}
-            </span>
           </div>
         </header>
 

@@ -1,6 +1,6 @@
 // client/src/pages/dashboard/Dashboard.tsx
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -92,6 +92,15 @@ export const Dashboard: React.FC = () => {
     });
   };
 
+  const formatActionTitle = (action: string) => {
+    if (!action) return "Activity";
+    return action
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   const getActivityConfig = (action: string) => {
     const act = (action || "").toLowerCase();
     if (act.includes("create")) {
@@ -133,11 +142,11 @@ export const Dashboard: React.FC = () => {
             <Skeleton className="h-8 w-44" />
             <Skeleton className="h-4 w-72" />
           </div>
-          <Skeleton className="h-10 w-36 rounded-xl" />
+          <Skeleton className="h-10 w-24 rounded-xl" />
         </div>
 
-        {/* 8 Stat Cards Skeletons */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {/* 8 Stat Cards Skeletons in Balanced 4-Col Grid */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
@@ -261,11 +270,8 @@ export const Dashboard: React.FC = () => {
       {/* Header & Quick Action CTAs */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-            <span>Support Overview</span>
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-600/20">
-              Live
-            </span>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Support Overview
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Real-time ticket volume, lifecycle distribution, and recent agent
@@ -287,20 +293,11 @@ export const Dashboard: React.FC = () => {
             />
             <span className="hidden sm:inline">Refresh</span>
           </button>
-
-          {/* Create Ticket Primary CTA */}
-          <Link
-            to="/tickets/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 active:scale-[0.98] transition-all duration-150"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>Create Ticket</span>
-          </Link>
         </div>
       </div>
 
-      {/* Actionable KPI Metric Cards Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {/* Actionable KPI Metric Cards Grid in Balanced 4-Col Grid */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -468,7 +465,7 @@ export const Dashboard: React.FC = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {item.action}
+                          {formatActionTitle(item.action)}
                         </span>
                         {item.ticketId?.ticketNumber && (
                           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-semibold text-blue-600 group-hover:bg-blue-50 transition-colors">
