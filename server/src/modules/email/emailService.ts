@@ -415,7 +415,7 @@ export const notifyTicketAssigned = (
 ) => {
   sendTicketEmail({
     to: assigneeEmail,
-    subject: ticket.subject,
+    subject: `Assigned: ${ticket.subject}`,
     html: renderTicketAssignedEmail(
       ticket.ticketNumber,
       ticket.subject,
@@ -426,7 +426,7 @@ export const notifyTicketAssigned = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
-    isReply: true,
+    isReply: false,
   });
 };
 
