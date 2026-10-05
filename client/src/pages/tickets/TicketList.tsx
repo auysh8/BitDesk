@@ -340,7 +340,7 @@ export const TicketList: React.FC = () => {
 
         {/* Reset Filter Button if active */}
         {hasActiveFilters && (
-          <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-2">
             <span className="text-[11px] font-medium text-slate-400">
               Filtered results active
             </span>
@@ -359,7 +359,7 @@ export const TicketList: React.FC = () => {
       <div className="hidden md:block overflow-hidden rounded-2xl bg-white shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
+            <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="px-6 py-3.5">Ticket</th>
                 <th className="px-6 py-3.5">Status</th>
@@ -537,7 +537,7 @@ export const TicketList: React.FC = () => {
                 {t.subject}
               </h3>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+              <div className="flex items-center justify-between pt-2 text-xs">
                 <StatusBadge status={t.status} />
                 <span className="text-slate-400">
                   {new Date(

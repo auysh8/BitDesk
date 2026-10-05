@@ -20,32 +20,27 @@ const toastConfig: Record<
     icon: React.ComponentType<{ className?: string }>;
     iconBg: string;
     iconColor: string;
-    borderAccent: string;
   }
 > = {
   success: {
     icon: CheckCircle2,
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",
-    borderAccent: "border-l-4 border-l-emerald-500",
   },
   error: {
     icon: AlertCircle,
     iconBg: "bg-rose-50",
     iconColor: "text-rose-600",
-    borderAccent: "border-l-4 border-l-rose-500",
   },
   info: {
     icon: Info,
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
-    borderAccent: "border-l-4 border-l-blue-500",
   },
   warning: {
     icon: AlertTriangle,
     iconBg: "bg-amber-50",
     iconColor: "text-amber-600",
-    borderAccent: "border-l-4 border-l-amber-500",
   },
 };
 
@@ -79,7 +74,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
               }}
               transition={{ type: "spring", stiffness: 450, damping: 30 }}
               role="status"
-              className={`pointer-events-auto flex items-start gap-3 rounded-2xl bg-white p-3.5 shadow-xl shadow-slate-900/10 ${config.borderAccent}`}
+              className="pointer-events-auto flex items-start gap-3 rounded-2xl bg-white p-3.5 shadow-xl shadow-slate-900/10"
             >
               <div
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${config.iconBg} ${config.iconColor}`}

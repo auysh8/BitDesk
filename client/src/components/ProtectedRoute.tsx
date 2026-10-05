@@ -1,6 +1,6 @@
-// client/src/components/ProtectedRoute.tsx
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface ProtectedRouteProps {
@@ -27,13 +27,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 px-4">
         <div className="flex flex-col items-center gap-4 text-center max-w-sm">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent shadow-md"></div>
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
           <div>
             <p className="text-base font-semibold text-slate-800">
               Connecting to BitDesk...
             </p>
             {isSlow && (
-              <p className="mt-2 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed animate-in fade-in duration-300">
+              <p className="mt-2 text-xs font-medium text-amber-700 bg-amber-50 rounded-xl px-3.5 py-2.5 shadow-2xs leading-relaxed animate-in fade-in duration-300">
                 ⚡ <strong>Waking up Render Free-Tier backend.</strong> Inactive instances sleep after 15 minutes. Cold boot takes ~30–45s—please wait, loading will finish automatically!
               </p>
             )}

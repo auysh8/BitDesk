@@ -96,7 +96,7 @@ export const CategoryManager: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Category List (2 Cols) */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-2xs lg:col-span-2">
-          <div className="bg-slate-50/80 p-4 px-6 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-slate-50/80 p-4 px-6 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Active Category Directory
             </h2>

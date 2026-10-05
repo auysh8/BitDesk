@@ -269,7 +269,7 @@ export const UserManager: React.FC = () => {
       <div className="overflow-hidden rounded-2xl bg-white shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
+            <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="px-6 py-3.5">User</th>
                 <th className="px-6 py-3.5">Role</th>
@@ -350,7 +350,7 @@ export const UserManager: React.FC = () => {
                             onChange={(e) =>
                               handleRoleChange(u._id, e.target.value)
                             }
-                            className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider cursor-pointer border-0 shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${getRoleBadge(
+                            className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${getRoleBadge(
                               u.role,
                             )}`}
                           >

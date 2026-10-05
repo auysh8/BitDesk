@@ -61,7 +61,7 @@ export const Register: React.FC = () => {
       }}
     >
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-200/50 bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -72,7 +72,7 @@ export const Register: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Full Name
           </label>
-          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <User className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="text"
@@ -89,7 +89,7 @@ export const Register: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Email Address
           </label>
-          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <Mail className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="email"
@@ -106,7 +106,7 @@ export const Register: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Phone Number
           </label>
-          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <Phone className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="tel"
@@ -123,7 +123,7 @@ export const Register: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Password
           </label>
-          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <Lock className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="password"
@@ -141,7 +141,7 @@ export const Register: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Account Role
           </label>
-          <div className="rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3 py-2.5 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="rounded-2xl bg-[#EDE7DC]/60 px-3 py-2.5 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}

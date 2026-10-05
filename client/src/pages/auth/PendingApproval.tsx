@@ -24,7 +24,7 @@ export const PendingApproval: React.FC = () => {
       }}
     >
       {/* Verification Summary */}
-      <div className="rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 p-4">
+      <div className="rounded-2xl bg-[#EDE7DC]/60 p-4 shadow-2xs">
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-2">
             <UserCheck className="h-4 w-4 text-emerald-600" />

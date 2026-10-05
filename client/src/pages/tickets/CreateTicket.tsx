@@ -278,10 +278,10 @@ export const CreateTicket: React.FC = () => {
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center cursor-pointer transition-all ${
+              className={`flex flex-col items-center justify-center rounded-2xl p-6 text-center cursor-pointer shadow-2xs transition-all ${
                 isDragging
-                  ? "border-blue-500 bg-blue-50/60"
-                  : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-300"
+                  ? "bg-blue-50/80 ring-2 ring-blue-500/30"
+                  : "bg-slate-100/70 hover:bg-slate-100"
               }`}
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-2xs text-blue-600 mb-2">
@@ -329,7 +329,7 @@ export const CreateTicket: React.FC = () => {
           </div>
 
           {/* Form Actions Row */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={() => navigate(-1)}

@@ -56,7 +56,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub Repository"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#DDD6C8] bg-[#EDE7DC]/50 text-slate-700 transition-all hover:border-slate-400 hover:bg-[#EDE7DC] hover:text-slate-900"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EDE7DC]/70 text-slate-700 shadow-2xs transition-all hover:bg-[#EDE7DC] hover:text-slate-900"
         >
           <svg className="h-4.5 w-4.5" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -92,7 +92,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       </main>
 
       {/* Bottom Footer */}
-      <footer className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-center border-t border-[#EDE7DC]/80 px-6 py-6 text-xs text-slate-500 sm:px-10">
+      <footer className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-center px-6 py-6 text-xs text-slate-500 sm:px-10">
         <div>
           {footerLink ? (
             <span>

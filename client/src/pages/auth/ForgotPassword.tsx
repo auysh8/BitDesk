@@ -41,7 +41,7 @@ export const ForgotPassword: React.FC = () => {
       }}
     >
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-200/50 bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -52,7 +52,7 @@ export const ForgotPassword: React.FC = () => {
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Email Address
           </label>
-          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+          <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
             <Mail className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="email"

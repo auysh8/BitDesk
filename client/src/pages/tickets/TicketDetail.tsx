@@ -416,7 +416,7 @@ export const TicketDetail: React.FC = () => {
         </h1>
 
         {/* Requester & Assignee Strip */}
-        <div className="mt-5 flex flex-wrap items-center gap-6 bg-slate-50/70 -mx-6 -mb-6 p-4 rounded-b-2xl text-xs text-slate-500 border-t border-slate-100">
+        <div className="mt-5 flex flex-wrap items-center gap-6 bg-slate-50/70 -mx-6 -mb-6 p-4 rounded-b-2xl text-xs text-slate-500">
           <div>
             <span className="font-semibold text-slate-700">Requester: </span>
             <span className="font-medium text-slate-900">
@@ -517,10 +517,10 @@ export const TicketDetail: React.FC = () => {
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] as any }}
                   className={`rounded-2xl p-5 transition-all shadow-2xs ${
                     isInternal
-                      ? "bg-amber-50/80 ring-1 ring-amber-500/25 border-l-4 border-l-amber-500"
+                      ? "bg-amber-50/80 ring-1 ring-amber-500/25"
                       : isAgentOrAdmin
-                        ? "bg-white border-l-4 border-l-blue-500"
-                        : "bg-white"
+                        ? "bg-white"
+                        : "bg-slate-50/80"
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs">
@@ -585,7 +585,7 @@ export const TicketDetail: React.FC = () => {
 
                   {/* Message File Attachments */}
                   {msg.attachments && msg.attachments.length > 0 && (
-                    <div className="mt-3.5 flex flex-wrap gap-2 pt-1 border-t border-slate-100/80">
+                    <div className="mt-3.5 flex flex-wrap gap-2 pt-1">
                       {msg.attachments.map((att: any, attIdx: number) => {
                         const isObj = typeof att === "object" && att !== null;
                         const fileName = isObj
@@ -757,7 +757,7 @@ export const TicketDetail: React.FC = () => {
               <div className="flex items-center justify-between pt-2">
                 <span className="text-[11px] text-slate-400 hidden sm:inline">
                   Press{" "}
-                  <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-semibold text-slate-500 shadow-3xs">
+                  <kbd className="rounded-lg bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-600 shadow-2xs">
                     {isMac ? "⌘ + Enter" : "Ctrl + Enter"}
                   </kbd>{" "}
                   to send

@@ -32,7 +32,7 @@ export const SkeletonTableRow: React.FC<{ columns?: number }> = ({
   columns = 7,
 }) => {
   return (
-    <tr className="border-b border-slate-100 last:border-0">
+    <tr>
       {Array.from({ length: columns }).map((_, idx) => (
         <td key={idx} className="px-6 py-4">
           <Skeleton

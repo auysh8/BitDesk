@@ -116,7 +116,7 @@ export const Login: React.FC = () => {
       }}
     >
       {/* Login Method Toggle Pills */}
-      <div className="mb-5 flex rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/70 p-1.5 text-xs font-semibold">
+      <div className="mb-5 flex rounded-2xl bg-[#EDE7DC]/80 p-1.5 text-xs font-semibold shadow-2xs">
         <button
           type="button"
           onClick={() => {
@@ -154,7 +154,7 @@ export const Login: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border border-red-200/50">
+        <div className="mb-4 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
           <div className="flex items-start gap-2">
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
             <div>
@@ -176,7 +176,7 @@ export const Login: React.FC = () => {
       )}
 
       {successMsg && (
-        <div className="mb-4 rounded-2xl bg-emerald-50/90 p-3.5 text-sm text-emerald-700 shadow-2xs border border-emerald-200/50">
+        <div className="mb-4 rounded-2xl bg-emerald-50/90 p-3.5 text-sm text-emerald-700 shadow-2xs">
           {successMsg}
         </div>
       )}
@@ -188,7 +188,7 @@ export const Login: React.FC = () => {
             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
               Email Address
             </label>
-            <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
               <Mail className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
               <input
                 type="email"
@@ -213,7 +213,7 @@ export const Login: React.FC = () => {
                 Forgot password?
               </Link>
             </div>
-            <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
               <Lock className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
               <input
                 type={showPassword ? "text" : "password"}
@@ -243,7 +243,7 @@ export const Login: React.FC = () => {
               id="remember"
               checked={rememberWorkstation}
               onChange={(e) => setRememberWorkstation(e.target.checked)}
-              className="h-4 w-4 rounded-md border-[#DDD6C8] accent-[#545AC8] cursor-pointer"
+              className="h-4 w-4 rounded-md accent-[#545AC8] cursor-pointer"
             />
             <label
               htmlFor="remember"
@@ -274,7 +274,7 @@ export const Login: React.FC = () => {
             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
               Email Address
             </label>
-            <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
               <Mail className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
               <input
                 type="email"
@@ -300,7 +300,7 @@ export const Login: React.FC = () => {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 placeholder="123456"
-                className="w-full rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-4 py-3 text-center font-mono text-xl tracking-widest text-slate-900 transition-all focus:border-[#545AC8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#545AC8]/20"
+                className="w-full rounded-2xl bg-[#EDE7DC]/60 px-4 py-3 text-center font-mono text-xl tracking-widest text-slate-900 shadow-2xs transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#545AC8]/25"
               />
             </div>
           )}
@@ -323,9 +323,9 @@ export const Login: React.FC = () => {
       )}
 
       {/* Demo Credentials Auto-Fill Box */}
-      <div className="mt-4 flex items-center justify-between rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/60 px-3.5 py-2.5 text-xs text-slate-600">
+      <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#EDE7DC]/70 px-3.5 py-2.5 text-xs text-slate-600 shadow-2xs">
         <div className="flex items-center gap-2">
-          <span className="rounded-md border border-slate-200/80 bg-white/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+          <span className="rounded-md bg-white/95 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 shadow-2xs">
             DEMO
           </span>
           <span className="font-mono text-slate-700">admin@bitdesk.dev</span>
@@ -333,7 +333,7 @@ export const Login: React.FC = () => {
         <button
           type="button"
           onClick={handleAutofillDemo}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#D9CBE4] bg-[#E8DEEE]/60 px-2.5 py-1 text-xs font-semibold text-[#634C8E] transition-colors hover:bg-[#E8DEEE] cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#E8DEEE]/80 px-2.5 py-1 text-xs font-semibold text-[#634C8E] shadow-2xs transition-colors hover:bg-[#E8DEEE] cursor-pointer"
         >
           <Zap className="h-3 w-3" />
           <span>Auto-fill</span>

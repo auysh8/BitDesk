@@ -230,7 +230,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           onKeyUp={updateActiveFormats}
           onMouseUp={updateActiveFormats}
           style={{ minHeight }}
-          className="wysiwyg-editor outline-none text-sm text-slate-900 leading-relaxed [&_b]:font-bold [&_b]:text-slate-950 [&_strong]:font-bold [&_strong]:text-slate-950 [&_i]:italic [&_em]:italic [&_u]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1.5 [&_blockquote]:border-l-4 [&_blockquote]:border-blue-400 [&_blockquote]:bg-blue-50/50 [&_blockquote]:px-3 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:my-2 [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:font-mono [&_pre]:text-xs [&_pre]:my-2"
+          className="wysiwyg-editor outline-none text-sm text-slate-900 leading-relaxed [&_b]:font-bold [&_b]:text-slate-950 [&_strong]:font-bold [&_strong]:text-slate-950 [&_i]:italic [&_em]:italic [&_u]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1.5 [&_blockquote]:bg-blue-50/80 [&_blockquote]:px-3.5 [&_blockquote]:py-1.5 [&_blockquote]:italic [&_blockquote]:rounded-xl [&_blockquote]:my-2 [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:font-mono [&_pre]:text-xs [&_pre]:my-2"
         />
       </div>
     </div>

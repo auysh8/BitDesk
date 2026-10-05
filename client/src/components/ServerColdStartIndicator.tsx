@@ -34,7 +34,7 @@ export const ServerColdStartIndicator: React.FC = () => {
 
   return (
     <div className="fixed inset-x-0 top-0 z-[9999] flex justify-center px-4 pt-3 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-300">
-      <div className="pointer-events-auto flex max-w-lg items-center gap-3 rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-4 py-3 text-white shadow-2xl shadow-orange-500/30 backdrop-blur-md">
+      <div className="pointer-events-auto flex max-w-lg items-center gap-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-4 py-3 text-white shadow-2xl shadow-orange-500/30 backdrop-blur-md">
         <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20">
           <Server className="h-5 w-5 text-white animate-pulse" />
           <Loader2 className="absolute -bottom-1 -right-1 h-4 w-4 animate-spin text-amber-200" />

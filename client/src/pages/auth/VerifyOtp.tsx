@@ -174,7 +174,7 @@ export const VerifyOtp: React.FC = () => {
       }}
     >
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-200/50 bg-red-50/90 p-4 text-xs font-medium text-red-700 shadow-2xs">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-xs font-medium text-red-700 shadow-2xs">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
           <span>{error}</span>
         </div>
@@ -187,7 +187,7 @@ export const VerifyOtp: React.FC = () => {
             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
               Email Address
             </label>
-            <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <div className="relative flex items-center rounded-2xl bg-[#EDE7DC]/60 px-3.5 py-3 shadow-2xs transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/25">
               <Mail className="mr-2.5 h-4 w-4 text-slate-400" />
               <input
                 type="email"
@@ -220,7 +220,7 @@ export const VerifyOtp: React.FC = () => {
                 onChange={(e) => handleDigitChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 onPaste={handlePaste}
-                className="h-13 w-11 sm:h-14 sm:w-12 rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 text-center font-mono text-xl sm:text-2xl font-bold text-slate-900 shadow-2xs transition-all focus:border-[#545AC8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#545AC8]/30"
+                className="h-13 w-11 sm:h-14 sm:w-12 rounded-2xl bg-[#EDE7DC]/60 text-center font-mono text-xl sm:text-2xl font-bold text-slate-900 shadow-2xs transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#545AC8]/30"
               />
             ))}
           </div>
