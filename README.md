@@ -10,6 +10,7 @@ BitDesk is a full-stack customer support platform built on the MERN stack. It br
 
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-bitdesk--1.onrender.com-0052cc?style=for-the-badge&logo=render)](https://bitdesk-1.onrender.com)
 [![API Health](https://img.shields.io/badge/⚡_API_Health-bitdesk.onrender.com-2ea44f?style=for-the-badge&logo=fastapi)](https://bitdesk.onrender.com/api/health)
+[![Swagger Docs](https://img.shields.io/badge/📖_Swagger_Docs-bitdesk.onrender.com%2Fapi--docs-85ea2d?style=for-the-badge&logo=swagger)](https://bitdesk.onrender.com/api-docs)
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-68a063?style=flat-square&logo=node.js)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7+-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
@@ -27,6 +28,8 @@ BitDesk is a full-stack customer support platform built on the MERN stack. It br
 > 
 > * **Web App:** [https://bitdesk-1.onrender.com](https://bitdesk-1.onrender.com)
 > * **Backend API:** [https://bitdesk.onrender.com/api](https://bitdesk.onrender.com/api)
+> * **Swagger API Documentation:** [https://bitdesk.onrender.com/api-docs](https://bitdesk.onrender.com/api-docs) *(Local: `http://localhost:5000/api-docs`)*
+> * **Postman Collection:** [`postman_collection.json`](./postman_collection.json)
 > 
 > #### 🔑 Pre-Configured Demo Admin:
 > * **Email:** `admin@bitdesk.dev`
@@ -132,6 +135,33 @@ cd client && npm run dev
 | `PATCH` | `/api/tickets/:id/status` | Staff | Transition ticket status |
 | `POST` | `/api/email/inbound` | Webhook | Ingest inbound email replies from Gmail |
 | `GET` | `/api/users` | Admin | Manage users, approve agents & update roles |
+| `POST` | `/api/upload` | Authenticated | Upload multipart files/attachments |
+
+---
+
+## 📖 API Documentation & Testing
+
+### 1. Interactive Swagger / OpenAPI Specification
+BitDesk includes interactive OpenAPI 3.0 documentation generated and mounted via `swagger-ui-express`:
+* **Online Swagger UI:** [https://bitdesk.onrender.com/api-docs](https://bitdesk.onrender.com/api-docs)
+* **Local Swagger UI:** `http://localhost:5000/api-docs`
+* **Raw OpenAPI Specification:** [`server/src/docs/swagger.json`](./server/src/docs/swagger.json)
+
+### 2. Postman Collection
+A complete Postman v2.1 collection is included in the root directory:
+* [`postman_collection.json`](./postman_collection.json) — Import into Postman to test Auth, Categories, Tickets, Messages, Inbound Webhooks, and Dashboard endpoints with pre-configured request bodies and environment variables.
+
+### 3. Automated Test Suite
+BitDesk includes an automated API test suite using Node.js built-in test runner testing health check, login, RBAC, Swagger docs route, upload protection, and admin permissions:
+```bash
+cd server && npm run test
+```
+
+### 4. Run with Docker Compose
+Orchestrate MongoDB, Redis, API Server, and Client frontend in isolated containers:
+```bash
+docker-compose up --build
+```
 
 ---
 
