@@ -343,7 +343,7 @@ export const notifyAdminsTicketCreated = async (
       if (admin.email && admin.email !== ticket.requesterEmail) {
         sendTicketEmail({
           to: admin.email,
-          subject: `New Ticket: ${ticket.subject}`,
+          subject: ticket.subject,
           html: renderAdminNewTicketAlert(
             ticket.ticketNumber,
             ticket.subject,
@@ -415,7 +415,7 @@ export const notifyTicketAssigned = (
 ) => {
   sendTicketEmail({
     to: assigneeEmail,
-    subject: `Assigned: ${ticket.subject}`,
+    subject: ticket.subject,
     html: renderTicketAssignedEmail(
       ticket.ticketNumber,
       ticket.subject,
@@ -426,7 +426,7 @@ export const notifyTicketAssigned = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
-    isReply: false,
+    isReply: true,
   });
 };
 
