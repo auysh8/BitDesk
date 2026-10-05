@@ -28,6 +28,9 @@ const __dirname = path.dirname(__filename);
 
 const app: Application = express();
 
+// Trust reverse proxy headers (e.g. Render, Vercel, Nginx) so express-rate-limit works accurately
+app.set("trust proxy", 1);
+
 app.use(helmet({
   contentSecurityPolicy: false, // Allows Swagger UI to load its styles & assets
 }));
