@@ -1,6 +1,5 @@
-// client/src/pages/auth/ResetPassword.tsx
 import React, { useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 import { useToast } from "../../context/ToastContext";
 import { Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
@@ -45,10 +44,15 @@ export const ResetPassword: React.FC = () => {
   return (
     <AuthLayout
       title="Reset password"
-      subtitle="Enter your verification code and new password."
+      subtitle="Enter your verification code and set a new password."
+      footerLink={{
+        prompt: "Remember your password?",
+        text: "Sign in to workspace",
+        to: "/login",
+      }}
     >
       {error && (
-        <div className="flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-200/50 bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -56,40 +60,44 @@ export const ResetPassword: React.FC = () => {
 
       <form onSubmit={handleReset} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             Email Address
           </label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@company.com"
-            className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
-          />
+          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             6-Digit Code
           </label>
-          <input
-            type="text"
-            required
-            maxLength={6}
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="123456"
-            className="mt-1.5 w-full rounded-xl bg-slate-100/80 py-2.5 px-4 text-center font-mono text-xl tracking-widest text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
-          />
+          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <input
+              type="text"
+              required
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="123456"
+              className="w-full bg-transparent text-center font-mono text-lg tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-600">
             New Password
           </label>
-          <div className="relative mt-1.5">
-            <Lock className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <div className="relative flex items-center rounded-2xl border border-[#DDD6C8] bg-[#EDE7DC]/40 px-3.5 py-3 transition-all focus-within:border-[#545AC8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#545AC8]/20">
+            <Lock className="mr-2.5 h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="password"
               required
@@ -97,7 +105,7 @@ export const ResetPassword: React.FC = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="At least 6 characters"
-              className="w-full rounded-xl bg-slate-100/80 py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 border-0 transition-colors"
+              className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
             />
           </div>
         </div>
@@ -105,30 +113,21 @@ export const ResetPassword: React.FC = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 disabled:opacity-50 transition-colors border-0 cursor-pointer"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#545AC8] py-3.5 text-sm font-semibold text-white shadow-md shadow-[#545AC8]/25 transition-all hover:bg-[#484EB8] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Resetting...
+              <span>Resetting...</span>
             </>
           ) : (
             <>
-              Reset password
+              <span>Reset password</span>
               <ArrowRight className="h-4 w-4" />
             </>
           )}
         </button>
       </form>
-
-      <div className="mt-6 text-center text-sm text-slate-500">
-        <Link
-          to="/login"
-          className="font-semibold text-blue-600 hover:underline"
-        >
-          Back to sign in
-        </Link>
-      </div>
     </AuthLayout>
   );
 };
