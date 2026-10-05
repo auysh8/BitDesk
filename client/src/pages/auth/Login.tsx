@@ -1,9 +1,10 @@
-// client/src/pages/auth/Login.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import axiosClient from "../../api/axiosClient";
-import { Mail, Lock, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { AuthLayout } from "../../components/layout/AuthLayout";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -87,51 +88,55 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100/75 px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl border-0">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
-            Welcome to BitDesk
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Sign in to manage and track your support tickets
-          </p>
-        </div>
-
-        {/* Login Method Toggle */}
-        <div className="mt-6 flex rounded-2xl bg-slate-100/90 p-1 text-sm font-medium">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("password");
-              setError(null);
-            }}
-            className={`flex-1 rounded-xl py-1.5 transition ${
-              loginMethod === "password"
-                ? "bg-white text-blue-600 shadow-2xs font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Password Login
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("otp");
-              setError(null);
-            }}
-            className={`flex-1 rounded-xl py-1.5 transition ${
-              loginMethod === "otp"
-                ? "bg-white text-blue-600 shadow-2xs font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            OTP Login
-          </button>
-        </div>
+    <AuthLayout
+      title="Sign In to BitDesk"
+      subtitle="Sign in to manage and resolve support tickets with real-time sync"
+    >
+      {/* Login Method Toggle */}
+      <div className="relative flex rounded-2xl bg-slate-100/90 p-1 text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => {
+            setLoginMethod("password");
+            setError(null);
+          }}
+          className={`relative flex-1 rounded-xl py-1.5 transition-colors ${
+            loginMethod === "password"
+              ? "text-blue-700 font-semibold"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          {loginMethod === "password" && (
+            <motion.div
+              layoutId="loginMethodPill"
+              className="absolute inset-0 rounded-xl bg-white shadow-2xs"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10">Password Login</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setLoginMethod("otp");
+            setError(null);
+          }}
+          className={`relative flex-1 rounded-xl py-1.5 transition-colors ${
+            loginMethod === "otp"
+              ? "text-blue-700 font-semibold"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          {loginMethod === "otp" && (
+            <motion.div
+              layoutId="loginMethodPill"
+              className="absolute inset-0 rounded-xl bg-white shadow-2xs"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10">OTP Login</span>
+        </button>
+      </div>
 
         {error && (
           <div className="mt-4 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
@@ -314,8 +319,7 @@ export const Login: React.FC = () => {
             Register now
           </Link>
         </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 };
 

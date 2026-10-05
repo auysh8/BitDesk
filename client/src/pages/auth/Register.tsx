@@ -1,4 +1,3 @@
-// client/src/pages/auth/Register.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
@@ -7,10 +6,10 @@ import {
   Mail,
   Phone,
   Lock,
-  ShieldCheck,
   ArrowRight,
   AlertCircle,
 } from "lucide-react";
+import { AuthLayout } from "../../components/layout/AuthLayout";
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -52,19 +51,10 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100/75 px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl border-0">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
-            Create an Account
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Register to start submitting and managing support tickets
-          </p>
-        </div>
+    <AuthLayout
+      title="Create an Account"
+      subtitle="Register to start submitting and managing support tickets"
+    >
 
         {error && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50/90 p-4 text-sm text-red-700 shadow-2xs border-0">
@@ -182,8 +172,7 @@ export const Register: React.FC = () => {
             Sign in
           </Link>
         </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 };
 
