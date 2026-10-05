@@ -75,19 +75,21 @@ interface SendEmailOptions {
   html: string;
   ticketNumber: string;
   ticketId?: any;
+  isReply?: boolean;
 }
 
 /**
  * Sends an email asynchronously with full email threading headers.
  * Priority order:
- * 1. Resend API (HTTPS Port 443 - Works seamlessly on Render/Vercel)
- * 2. Brevo API (HTTPS Port 443)
- * 3. Nodemailer SMTP (Port 587/465)
+ * 1. Google Apps Script Gmail Relay (Bypasses SMTP blocks & supports thread replies)
+ * 2. Resend API (HTTPS Port 443 - Works seamlessly on Render/Vercel)
+ * 3. Brevo API (HTTPS Port 443)
+ * 4. Nodemailer SMTP (Port 587/465)
  */
 export const sendTicketEmail = async (
   options: SendEmailOptions,
 ): Promise<void> => {
-  const { to, subject, html, ticketNumber, ticketId } = options;
+  const { to, subject, html, ticketNumber, ticketId, isReply = false } = options;
 
   if (to.endsWith("@bitdesk.dev") || to.endsWith("@bitdesk.local")) {
     // Avoid bouncebacks for fictional demo domains
@@ -104,9 +106,23 @@ export const sendTicketEmail = async (
     ? fromEmail.split("@")
     : ["support", "bitdesk.local"];
 
-  // RFC Standard Threading Identifiers dynamically using active domain
-  const messageId = `<ticket-${ticketNumber}-${Date.now()}@${domain}>`;
-  const threadReference = `<ticket-${ticketNumber}@${domain}>`;
+  // Normalize subject line so all thread messages share the exact same root subject
+  const cleanSubject = subject
+    .replace(new RegExp(`^\\[${ticketNumber}\\]\\s*`, "i"), "")
+    .replace(/^Re:\s*/i, "")
+    .trim();
+
+  // Consistent RFC subject formatting across the entire ticket lifecycle
+  const formattedSubject = isReply
+    ? `Re: [${ticketNumber}] ${cleanSubject}`
+    : `[${ticketNumber}] ${cleanSubject}`;
+
+  // The root message of a ticket always owns the canonical thread identifier:
+  const rootMessageId = `<ticket-${ticketNumber}@${domain}>`;
+  // Individual messages have unique messageId, but reference the root
+  const messageId = isReply
+    ? `<ticket-${ticketNumber}-msg-${Date.now()}@${domain}>`
+    : rootMessageId;
   const replyToAddress = `BitDesk Support <${userPrefix}+${ticketNumber}@${domain}>`;
 
   // Asynchronous background execution (doesn't block the HTTP request)
@@ -122,10 +138,15 @@ export const sendTicketEmail = async (
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to,
-            subject: `[${ticketNumber}] ${subject}`,
+            subject: formattedSubject,
             html,
             senderName: "BitDesk Support",
             replyTo: replyToAddress,
+            ticketNumber,
+            isReply: Boolean(isReply),
+            messageId,
+            inReplyTo: isReply ? rootMessageId : undefined,
+            references: isReply ? rootMessageId : undefined,
           }),
         });
 
@@ -135,13 +156,12 @@ export const sendTicketEmail = async (
         }
         providerMessageId = `gmail-relay-${Date.now()}`;
         console.log(
-          `[Email Service - Gmail Relay] [${ticketNumber}] Dispatched to ${to}`,
+          `[Email Service - Gmail Relay] [${ticketNumber}] (${isReply ? "Reply Threaded" : "Root Ticket"}) Dispatched to ${to}`,
         );
       }
       // 2. Check if Resend HTTP API is configured
       else if (resend) {
         // Resend requires a verified domain to send from custom addresses.
-        // For public mailboxes (@gmail.com, @yahoo, etc.) or demo domains, fall back to onboarding@resend.dev
         let fromSender = "BitDesk Support <onboarding@resend.dev>";
         if (
           appConfig.EMAIL_FROM &&
@@ -154,18 +174,22 @@ export const sendTicketEmail = async (
           fromSender = appConfig.EMAIL_FROM;
         }
 
+        const headers: Record<string, string> = {
+          "X-BitDesk-Ticket-Number": ticketNumber,
+          "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
+        };
+        if (isReply) {
+          headers["In-Reply-To"] = rootMessageId;
+          headers["References"] = rootMessageId;
+        }
+
         const { data, error } = await resend.emails.send({
           from: fromSender,
           to: [to],
-          subject: `[${ticketNumber}] ${subject}`,
+          subject: formattedSubject,
           html,
           replyTo: replyToAddress,
-          headers: {
-            "X-BitDesk-Ticket-Number": ticketNumber,
-            "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
-            "In-Reply-To": threadReference,
-            References: threadReference,
-          },
+          headers,
         });
 
         if (error) {
@@ -173,13 +197,21 @@ export const sendTicketEmail = async (
         }
         providerMessageId = data?.id;
         console.log(
-          `[Email Service - Resend] [${ticketNumber}] Dispatched to ${to} (ID: ${providerMessageId})`,
+          `[Email Service - Resend] [${ticketNumber}] (${isReply ? "Reply Threaded" : "Root Ticket"}) Dispatched to ${to} (ID: ${providerMessageId})`,
         );
       }
-      // 2. Check if Brevo HTTP API is configured
+      // 3. Check if Brevo HTTP API is configured
       else if (appConfig.BREVO_API_KEY) {
         const replyEmailOnly =
           replyToAddress.match(/<([^>]+)>/)?.[1] || fromEmail;
+        const headers: Record<string, string> = {
+          "X-BitDesk-Ticket-Number": ticketNumber,
+        };
+        if (isReply) {
+          headers["In-Reply-To"] = rootMessageId;
+          headers["References"] = rootMessageId;
+        }
+
         const res = await fetch("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
           headers: {
@@ -191,13 +223,9 @@ export const sendTicketEmail = async (
             sender: { name: "BitDesk Support", email: fromEmail },
             to: [{ email: to }],
             replyTo: { email: replyEmailOnly, name: "BitDesk Support" },
-            subject: `[${ticketNumber}] ${subject}`,
+            subject: formattedSubject,
             htmlContent: html,
-            headers: {
-              "X-BitDesk-Ticket-Number": ticketNumber,
-              "In-Reply-To": threadReference,
-              References: threadReference,
-            },
+            headers,
           }),
         });
 
@@ -209,28 +237,31 @@ export const sendTicketEmail = async (
         }
         providerMessageId = brevoJson.messageId;
         console.log(
-          `[Email Service - Brevo] [${ticketNumber}] Dispatched to ${to} (ID: ${providerMessageId})`,
+          `[Email Service - Brevo] [${ticketNumber}] (${isReply ? "Reply Threaded" : "Root Ticket"}) Dispatched to ${to} (ID: ${providerMessageId})`,
         );
       }
-      // 3. Fallback to standard Nodemailer SMTP
+      // 4. Fallback to standard Nodemailer SMTP
       else {
         const activeTransporter = await getTransporter();
 
-        const mailOptions = {
+        const mailOptions: any = {
           from:
             appConfig.EMAIL_FROM || '"BitDesk Support" <support@bitdesk.local>',
           to,
-          subject: `[${ticketNumber}] ${subject}`,
+          subject: formattedSubject,
           html,
           messageId,
-          inReplyTo: threadReference,
-          references: threadReference,
           replyTo: replyToAddress,
           headers: {
             "X-BitDesk-Ticket-Number": ticketNumber,
             "X-BitDesk-Ticket-Id": ticketId ? ticketId.toString() : "",
           },
         };
+
+        if (isReply) {
+          mailOptions.inReplyTo = rootMessageId;
+          mailOptions.references = rootMessageId;
+        }
 
         const info = await activeTransporter.sendMail(mailOptions);
         providerMessageId = info.messageId;
@@ -239,7 +270,7 @@ export const sendTicketEmail = async (
         if (previewUrl) {
           console.log(`\n========================================`);
           console.log(`[EMAIL DISPATCHED] To: ${to}`);
-          console.log(`[EMAIL SUBJECT] [${ticketNumber}] ${subject}`);
+          console.log(`[EMAIL SUBJECT] ${formattedSubject}`);
           console.log(`[VIEW EMAIL IN BROWSER]: ${previewUrl}`);
           console.log(`========================================\n`);
         } else {
@@ -255,7 +286,7 @@ export const sendTicketEmail = async (
         ticketNumber,
         recipientEmail: to,
         direction: "outbound",
-        subject: `[${ticketNumber}] ${subject}`,
+        subject: formattedSubject,
         status: "sent",
         processedAt: new Date(),
       });
@@ -351,6 +382,7 @@ export const notifyTicketReply = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
+    isReply: true,
   });
 };
 
@@ -371,6 +403,7 @@ export const notifyStatusChanged = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
+    isReply: true,
   });
 };
 
@@ -382,7 +415,7 @@ export const notifyTicketAssigned = (
 ) => {
   sendTicketEmail({
     to: assigneeEmail,
-    subject: `You have been assigned to [${ticket.ticketNumber}] ${ticket.subject}`,
+    subject: ticket.subject,
     html: renderTicketAssignedEmail(
       ticket.ticketNumber,
       ticket.subject,
@@ -393,6 +426,7 @@ export const notifyTicketAssigned = (
     ),
     ticketNumber: ticket.ticketNumber,
     ticketId: ticket._id,
+    isReply: true,
   });
 };
 
