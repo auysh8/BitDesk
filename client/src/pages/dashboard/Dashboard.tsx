@@ -164,8 +164,8 @@ export const Dashboard: React.FC = () => {
           <Skeleton className="h-10 w-24 rounded-xl" />
         </div>
 
-        {/* 8 Stat Cards Skeletons in Balanced 4-Col Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {/* Stat Cards Skeletons in Balanced 3-Col Grid */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
@@ -320,7 +320,7 @@ export const Dashboard: React.FC = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3"
       >
         {statCards.map((card) => {
           const Icon = card.icon;

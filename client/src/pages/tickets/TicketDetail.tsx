@@ -629,10 +629,10 @@ export const TicketDetail: React.FC = () => {
             })}
           </div>
 
-          {/* Reply Composer Card - Floating Sticky */}
+          {/* Reply Composer Card - Inline End-of-Thread */}
           <div
             onKeyDown={handleKeyDown}
-            className="sticky -bottom-2 md:-bottom-5 z-20 rounded-2xl bg-white/95 backdrop-blur-md p-4 sm:p-5 shadow-xl ring-1 ring-slate-900/5 space-y-3 transition-all duration-200"
+            className="rounded-2xl bg-white p-5 shadow-2xs border border-slate-200/80 space-y-3 transition-all duration-200"
           >
             <form onSubmit={handleSendReply} className="space-y-3">
               <div className="flex items-center justify-between">
@@ -805,8 +805,8 @@ export const TicketDetail: React.FC = () => {
                   <div className="absolute left-0.5 top-1.5 h-3 w-3 rounded-full bg-blue-600 ring-4 ring-blue-50" />
                   <p className="font-semibold text-slate-800">{act.action}</p>
                   {act.newValue && (
-                    <p className="mt-0.5 text-slate-600 font-mono truncate">
-                      {act.newValue}
+                    <p className="mt-0.5 text-slate-600 line-clamp-2">
+                      {act.newValue.replace(/<[^>]*>?/gm, "").trim()}
                     </p>
                   )}
                   <span className="text-[10px] text-slate-400">

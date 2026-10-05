@@ -231,9 +231,9 @@ export const TicketList: React.FC = () => {
 
       {/* Filter and Search Bar */}
       <div className="rounded-2xl bg-white p-4 shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
           {/* Search Input with Instant Clear */}
-          <div className="relative lg:col-span-1">
+          <div className="relative sm:col-span-2 lg:col-span-2">
             <Search className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
@@ -418,7 +418,7 @@ export const TicketList: React.FC = () => {
                     onClick={() => navigate(`/tickets/${t._id}`)}
                     className="cursor-pointer hover:bg-slate-50/80 transition-colors duration-150 group"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 min-w-[220px]">
                       <div className="font-mono text-xs font-semibold text-blue-600 group-hover:underline">
                         {t.ticketNumber}
                       </div>
