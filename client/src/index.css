@@ -40,3 +40,16 @@
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite ease-in-out;
 }
+
+/* Accessibility: Respect Reduced Motion Preferences (ui-ux-pro-max standard) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

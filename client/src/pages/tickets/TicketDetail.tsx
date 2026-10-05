@@ -1,6 +1,6 @@
-// client/src/pages/tickets/TicketDetail.tsx
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import axiosClient from "../../api/axiosClient";
@@ -510,8 +510,11 @@ export const TicketDetail: React.FC = () => {
                 msg.senderRole === "agent" || msg.senderRole === "admin";
 
               return (
-                <div
+                <motion.div
                   key={msg._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] as any }}
                   className={`rounded-2xl p-5 transition-all shadow-2xs ${
                     isInternal
                       ? "bg-amber-50/80 ring-1 ring-amber-500/25 border-l-4 border-l-amber-500"
@@ -621,7 +624,7 @@ export const TicketDetail: React.FC = () => {
                       })}
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -637,35 +640,50 @@ export const TicketDetail: React.FC = () => {
                   Compose Response
                 </span>
 
-                {/* Internal Note vs Public Reply Toggle */}
+                {/* Internal Note vs Public Reply Toggle with Sliding Indicator */}
                 {isStaff && (
-                  <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                  <div className="relative flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
                     <button
                       type="button"
                       disabled={!canReplyPublicly}
                       onClick={() => setMessageType("public")}
-                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 transition-all ${
+                      className={`relative inline-flex items-center gap-1 rounded-lg px-3 py-1 transition-colors ${
                         !canReplyPublicly
                           ? "cursor-not-allowed text-slate-400 opacity-50"
                           : messageType === "public"
-                            ? "bg-white text-blue-700 shadow-2xs font-bold"
+                            ? "text-blue-700 font-bold"
                             : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
-                      {!canReplyPublicly && <Lock className="h-3 w-3" />}
-                      Public Reply
+                      {messageType === "public" && (
+                        <motion.div
+                          layoutId="replyTabIndicator"
+                          className="absolute inset-0 rounded-lg bg-white shadow-2xs"
+                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                        />
+                      )}
+                      {!canReplyPublicly && <Lock className="h-3 w-3 relative z-10" />}
+                      <span className="relative z-10">Public Reply</span>
                     </button>
+
                     <button
                       type="button"
                       onClick={() => setMessageType("internal")}
-                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 transition-all ${
+                      className={`relative inline-flex items-center gap-1 rounded-lg px-3 py-1 transition-colors ${
                         messageType === "internal"
-                          ? "bg-amber-600 text-white shadow-2xs font-bold"
+                          ? "text-amber-800 font-bold"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
-                      <Lock className="h-3 w-3" />
-                      Internal Note
+                      {messageType === "internal" && (
+                        <motion.div
+                          layoutId="replyTabIndicator"
+                          className="absolute inset-0 rounded-lg bg-amber-100 shadow-2xs"
+                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                        />
+                      )}
+                      <Lock className="h-3 w-3 relative z-10" />
+                      <span className="relative z-10">Internal Note</span>
                     </button>
                   </div>
                 )}

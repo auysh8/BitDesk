@@ -1,6 +1,6 @@
-// client/src/pages/tickets/TicketList.tsx
 import React, { useEffect, useState, useTransition } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import axiosClient from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { StatusBadge } from "../../components/common/StatusBadge";
@@ -192,51 +192,40 @@ export const TicketList: React.FC = () => {
         </Link>
       </div>
 
-      {/* Staff Preset Segmented Tabs */}
+      {/* Staff Preset Segmented Tabs with Sliding Indicator */}
       {isStaff && (
-        <div className="inline-flex rounded-2xl bg-slate-200/60 p-1 text-xs font-semibold">
-          <button
-            onClick={() => {
-              setActiveTab("all");
-              setPage(1);
-              updateQueryParams({ tab: "all" });
-            }}
-            className={`rounded-xl px-4 py-2 transition-all duration-150 ${
-              activeTab === "all"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            All Tickets
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("mine");
-              setPage(1);
-              updateQueryParams({ tab: "mine" });
-            }}
-            className={`rounded-xl px-4 py-2 transition-all duration-150 ${
-              activeTab === "mine"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Assigned to Me
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("unassigned");
-              setPage(1);
-              updateQueryParams({ tab: "unassigned" });
-            }}
-            className={`rounded-xl px-4 py-2 transition-all duration-150 ${
-              activeTab === "unassigned"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Unassigned Queue
-          </button>
+        <div className="relative inline-flex rounded-2xl bg-slate-200/60 p-1 text-xs font-semibold">
+          {[
+            { id: "all", label: "All Tickets" },
+            { id: "mine", label: "Assigned to Me" },
+            { id: "unassigned", label: "Unassigned Queue" },
+          ].map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id as any);
+                  setPage(1);
+                  updateQueryParams({ tab: tab.id });
+                }}
+                className={`relative rounded-xl px-4 py-2 transition-colors duration-150 ${
+                  active
+                    ? "text-slate-900 font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="activeTicketTab"
+                    className="absolute inset-0 rounded-xl bg-white shadow-2xs"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -421,8 +410,11 @@ export const TicketList: React.FC = () => {
                 </tr>
               ) : (
                 tickets.map((t) => (
-                  <tr
+                  <motion.tr
                     key={t._id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] as any }}
                     onClick={() => navigate(`/tickets/${t._id}`)}
                     className="cursor-pointer hover:bg-slate-50/80 transition-colors duration-150 group"
                   >
@@ -472,7 +464,7 @@ export const TicketList: React.FC = () => {
                         day: "numeric",
                       })}
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               )}
             </tbody>
@@ -524,10 +516,15 @@ export const TicketList: React.FC = () => {
           </div>
         ) : (
           tickets.map((t) => (
-            <div
+            <motion.div
               key={t._id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] as any }}
               onClick={() => navigate(`/tickets/${t._id}`)}
-              className="rounded-2xl bg-white p-4 shadow-2xs hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer space-y-2.5"
+              className="rounded-2xl bg-white p-4 shadow-2xs hover:shadow-md transition-shadow duration-150 cursor-pointer space-y-2.5"
             >
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-semibold text-blue-600">
@@ -551,7 +548,7 @@ export const TicketList: React.FC = () => {
                   })}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>

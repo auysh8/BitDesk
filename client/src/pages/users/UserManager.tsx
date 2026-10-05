@@ -1,5 +1,5 @@
-// client/src/pages/users/UserManager.tsx
 import React, { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import axiosClient from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -129,54 +129,46 @@ export const UserManager: React.FC = () => {
         </p>
       </div>
 
-      {/* Segmented Filter Tabs */}
+      {/* Segmented Filter Tabs with Sliding Motion */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-2xl bg-slate-200/60 p-1 text-xs font-semibold">
-          <button
-            onClick={() => setActiveTab("all")}
-            className={`rounded-xl px-4 py-2 transition-all ${
-              activeTab === "all"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            All Accounts
-          </button>
-          <button
-            onClick={() => setActiveTab("pending")}
-            className={`relative rounded-xl px-4 py-2 transition-all flex items-center gap-1.5 ${
-              activeTab === "pending"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <span>Pending Staff</span>
-            {pendingApprovals.length > 0 && (
-              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
-                {pendingApprovals.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("staff")}
-            className={`rounded-xl px-4 py-2 transition-all ${
-              activeTab === "staff"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Staff & Agents
-          </button>
-          <button
-            onClick={() => setActiveTab("customers")}
-            className={`rounded-xl px-4 py-2 transition-all ${
-              activeTab === "customers"
-                ? "bg-white text-slate-900 shadow-2xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Customers
-          </button>
+        <div className="relative inline-flex rounded-2xl bg-slate-200/60 p-1 text-xs font-semibold">
+          {[
+            { id: "all", label: "All Accounts" },
+            {
+              id: "pending",
+              label: "Pending Staff",
+              badge: pendingApprovals.length,
+            },
+            { id: "staff", label: "Staff & Agents" },
+            { id: "customers", label: "Customers" },
+          ].map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`relative rounded-xl px-4 py-2 transition-colors flex items-center gap-1.5 ${
+                  active
+                    ? "text-slate-900 font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="activeUserTab"
+                    className="absolute inset-0 rounded-xl bg-white shadow-2xs"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+                {Boolean(tab.badge) && (
+                  <span className="relative z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

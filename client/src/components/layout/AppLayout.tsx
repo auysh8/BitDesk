@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { getSocket } from "../../api/socket";
@@ -258,9 +259,17 @@ export const AppLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
+        {/* Dynamic Page Content with Smooth Motion Page Transition */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Outlet />
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="h-full"
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
     </div>

@@ -1,6 +1,6 @@
-// client/src/pages/dashboard/Dashboard.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import axiosClient from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -27,6 +27,25 @@ import {
   Activity,
   Layers,
 } from "lucide-react";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.035,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as any },
+  },
+};
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -296,13 +315,21 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Actionable KPI Metric Cards Grid in Balanced 4-Col Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {/* Actionable KPI Metric Cards Grid in Balanced 4-Col Grid with Staggered Motion */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+      >
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div
+            <motion.div
               key={card.label}
+              variants={cardVariants}
+              whileHover={{ y: -3, transition: { duration: 0.15 } }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => navigate(card.path)}
               role="button"
               tabIndex={0}
@@ -312,7 +339,7 @@ export const Dashboard: React.FC = () => {
                 }
               }}
               title={`View ${card.label} tickets`}
-              className="group relative flex flex-col justify-between rounded-2xl bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+              className="group relative flex flex-col justify-between rounded-2xl bg-white p-5 shadow-2xs hover:shadow-md transition-shadow duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-600 transition-colors">
@@ -333,10 +360,10 @@ export const Dashboard: React.FC = () => {
                 </p>
                 <ArrowUpRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-slate-500 transition-all duration-150 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Visual Status Breakdown Meter */}
       {total > 0 && (
@@ -353,31 +380,41 @@ export const Dashboard: React.FC = () => {
             </span>
           </div>
 
-          {/* Segmented Progress Bar */}
+          {/* Segmented Progress Bar with Motion Width Transition */}
           <div className="flex h-3.5 w-full overflow-hidden rounded-full bg-slate-100 p-0.5">
-            <div
-              style={{ width: `${getPercent(openCount)}%` }}
-              className="bg-blue-500 rounded-l-full transition-all duration-500"
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${getPercent(openCount)}%` }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+              className="bg-blue-500 rounded-l-full"
               title={`Open: ${openCount} (${getPercent(openCount)}%)`}
             />
-            <div
-              style={{ width: `${getPercent(inProgressCount)}%` }}
-              className="bg-amber-500 transition-all duration-500"
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${getPercent(inProgressCount)}%` }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+              className="bg-amber-500"
               title={`In Progress: ${inProgressCount} (${getPercent(inProgressCount)}%)`}
             />
-            <div
-              style={{ width: `${getPercent(pendingCount)}%` }}
-              className="bg-orange-500 transition-all duration-500"
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${getPercent(pendingCount)}%` }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+              className="bg-orange-500"
               title={`Pending: ${pendingCount} (${getPercent(pendingCount)}%)`}
             />
-            <div
-              style={{ width: `${getPercent(resolvedCount)}%` }}
-              className="bg-emerald-500 transition-all duration-500"
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${getPercent(resolvedCount)}%` }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+              className="bg-emerald-500"
               title={`Resolved: ${resolvedCount} (${getPercent(resolvedCount)}%)`}
             />
-            <div
-              style={{ width: `${getPercent(closedCount)}%` }}
-              className="bg-slate-400 rounded-r-full transition-all duration-500"
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${getPercent(closedCount)}%` }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+              className="bg-slate-400 rounded-r-full"
               title={`Closed: ${closedCount} (${getPercent(closedCount)}%)`}
             />
           </div>
@@ -422,7 +459,12 @@ export const Dashboard: React.FC = () => {
           </span>
         </div>
 
-        <div className="divide-y divide-slate-100/80">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="divide-y divide-slate-100/80"
+        >
           {activity.length === 0 ? (
             <div className="py-12 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
@@ -442,8 +484,10 @@ export const Dashboard: React.FC = () => {
               const hasTicket = Boolean(item.ticketId?._id);
 
               return (
-                <div
+                <motion.div
                   key={idx}
+                  variants={cardVariants}
+                  whileHover={hasTicket ? { x: 2 } : undefined}
                   onClick={() => {
                     if (hasTicket) {
                       navigate(`/tickets/${item.ticketId._id}`);
@@ -493,11 +537,11 @@ export const Dashboard: React.FC = () => {
                       <ArrowUpRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-blue-600 transition-all duration-150" />
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
