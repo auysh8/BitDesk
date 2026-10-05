@@ -629,10 +629,10 @@ export const TicketDetail: React.FC = () => {
             })}
           </div>
 
-          {/* Reply Composer Card */}
+          {/* Reply Composer Card - Floating Sticky */}
           <div
             onKeyDown={handleKeyDown}
-            className="rounded-2xl bg-white p-6 shadow-2xs space-y-4"
+            className="sticky bottom-4 z-20 rounded-2xl bg-white/95 backdrop-blur-md p-5 sm:p-6 shadow-xl ring-1 ring-slate-900/5 space-y-4 transition-all duration-200"
           >
             <form onSubmit={handleSendReply} className="space-y-4">
               <div className="flex items-center justify-between">
@@ -786,8 +786,8 @@ export const TicketDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Ticket Timeline */}
-        <div className="rounded-2xl bg-white p-6 shadow-2xs h-fit space-y-4">
+        {/* Right Column: Ticket Timeline - Sticky */}
+        <div className="sticky top-6 rounded-2xl bg-white p-6 shadow-2xs h-fit space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Audit Timeline
           </h2>
