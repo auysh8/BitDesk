@@ -49,9 +49,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           <span className="text-xl font-extrabold tracking-tight text-slate-900">
             BitDesk
           </span>
-          <span className="inline-flex items-center rounded-full border border-[#DDD0F3] bg-[#EFE8F9] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#7154A4]">
-            V2.4
-          </span>
         </Link>
 
         <a
@@ -95,7 +92,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       </main>
 
       {/* Bottom Footer */}
-      <footer className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 border-t border-[#EDE7DC]/80 px-6 py-6 text-xs text-slate-500 sm:flex-row sm:px-10">
+      <footer className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-center border-t border-[#EDE7DC]/80 px-6 py-6 text-xs text-slate-500 sm:px-10">
         <div>
           {footerLink ? (
             <span>
@@ -114,17 +111,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
                 to="/register"
                 className="font-semibold text-[#545AC8] hover:underline"
               >
-                Request early access
+                Register
               </Link>
             </span>
           )}
-        </div>
-
-        <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          <span>SOC2 Type II</span>
-          <span>•</span>
-          <span>SAML 2.0</span>
         </div>
       </footer>
     </div>

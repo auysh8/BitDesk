@@ -111,7 +111,7 @@ export const Login: React.FC = () => {
       subtitle="Enter your credentials to access your support triage workspace."
       footerLink={{
         prompt: "Don't have a team account?",
-        text: "Request early access",
+        text: "Register",
         to: "/register",
       }}
     >
