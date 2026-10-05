@@ -15,7 +15,6 @@ import {
   Send,
   Lock,
   Mail,
-  Globe,
   CheckCircle2,
   RotateCcw,
   XCircle,
@@ -804,10 +803,9 @@ export const TicketDetail: React.FC = () => {
                     {/* Bottom Timestamp & Delivery Status */}
                     <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-slate-500 select-none">
                       {isEmail && (
-                        <Mail
-                          className="h-2.5 w-2.5 text-slate-400 mr-0.5"
-                          title="Sent via Email"
-                        />
+                        <span title="Sent via Email">
+                          <Mail className="h-2.5 w-2.5 text-slate-400 mr-0.5" />
+                        </span>
                       )}
                       <span title={new Date(msg.createdAt).toLocaleString()}>
                         {formatRelativeTime(msg.createdAt)}
