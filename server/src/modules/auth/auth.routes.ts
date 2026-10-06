@@ -1,6 +1,8 @@
 // server/src/modules/auth/auth.routes.ts
 import { Router } from "express";
 import {
+  sendPreRegisterOtp,
+  verifyPreRegisterOtp,
   register,
   verifyOtp,
   loginPassword,
@@ -19,6 +21,8 @@ import { validate } from "../../middleware/validate.js";
 import { authenticate } from "../../middleware/auth.js";
 import { authRateLimiter } from "../../middleware/rateLimiter.js";
 import {
+  sendPreRegisterOtpSchema,
+  verifyPreRegisterOtpSchema,
   registerSchema,
   loginPasswordSchema,
   requestOtpSchema,
@@ -33,6 +37,16 @@ const router = Router();
 router.use(authRateLimiter);
 
 // Public Authentication Endpoints
+router.post(
+  "/pre-register/send-otp",
+  validate(sendPreRegisterOtpSchema),
+  sendPreRegisterOtp,
+);
+router.post(
+  "/pre-register/verify-otp",
+  validate(verifyPreRegisterOtpSchema),
+  verifyPreRegisterOtp,
+);
 router.post("/register", validate(registerSchema), register);
 router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
 router.post("/resend-otp", resendOtp);

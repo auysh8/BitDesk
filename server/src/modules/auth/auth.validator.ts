@@ -34,6 +34,19 @@ export const registerSchema = Joi.object({
   role: Joi.string()
     .valid(...Object.values(USER_ROLES))
     .default(USER_ROLES.CUSTOMER),
+  emailVerificationToken: Joi.string().trim().optional(),
+});
+
+export const sendPreRegisterOtpSchema = Joi.object({
+  email: emailValidation,
+});
+
+export const verifyPreRegisterOtpSchema = Joi.object({
+  email: emailValidation,
+  otp: Joi.string().trim().length(6).required().messages({
+    "string.empty": "OTP is required",
+    "string.length": "OTP must be exactly 6 digits",
+  }),
 });
 
 export const loginPasswordSchema = Joi.object({

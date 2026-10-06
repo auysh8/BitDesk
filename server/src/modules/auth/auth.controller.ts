@@ -2,6 +2,7 @@ import type { Request, Response, CookieOptions } from "express";
 import jwt from "jsonwebtoken";
 import appConfig from "../../config/config.js";
 import User, { type IUser } from "../user/userModel.js";
+import EmailVerification from "./emailVerification.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { sendResponse } from "../../utils/apiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -48,19 +49,207 @@ const sendTokenResponse = async (
 };
 
 /**
+ * 0a. Send OTP for pre-registration email verification
+ * POST /api/auth/pre-register/send-otp
+ */
+export const sendPreRegisterOtp = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      throw new ApiError(
+        409,
+        "An account with this email already exists. Please sign in instead.",
+      );
+    }
+
+    // Generate 6-digit OTP
+    const { otp, otpHash, otpExpiresAt } = generateOtp();
+
+    // Upsert into EmailVerification model
+    await EmailVerification.findOneAndUpdate(
+      { email: cleanEmail },
+      {
+        email: cleanEmail,
+        otpHash,
+        otpExpiresAt,
+        attempts: 0,
+        createdAt: new Date(),
+      },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+    );
+
+    // Log OTP to terminal for development testing
+    console.log(`\n========================================`);
+    console.log(`[AUTH] Pre-registration OTP for ${cleanEmail}: ${otp}`);
+    console.log(`========================================\n`);
+
+    // Dispatch OTP email
+    sendOtpEmail(
+      cleanEmail,
+      cleanEmail.split("@")[0],
+      otp,
+      "Email Verification",
+    );
+
+    return sendResponse(
+      res,
+      200,
+      `Verification code sent to ${cleanEmail}. Please enter the 6-digit code to continue.`,
+      {
+        email: cleanEmail,
+        expiresAt: otpExpiresAt,
+      },
+    );
+  },
+);
+
+/**
+ * 0b. Verify OTP for pre-registration and issue temporary verification token
+ * POST /api/auth/pre-register/verify-otp
+ */
+export const verifyPreRegisterOtp = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
+
+    const record = await EmailVerification.findOne({ email: cleanEmail });
+    if (!record) {
+      throw new ApiError(
+        400,
+        "No pending verification found or code has expired. Please request a new code.",
+      );
+    }
+
+    if (new Date() > record.otpExpiresAt) {
+      await EmailVerification.deleteOne({ _id: record._id });
+      throw new ApiError(
+        400,
+        "Verification code has expired. Please request a new one.",
+      );
+    }
+
+    if (record.attempts >= 5) {
+      await EmailVerification.deleteOne({ _id: record._id });
+      throw new ApiError(
+        429,
+        "Too many failed attempts. Please request a new verification code.",
+      );
+    }
+
+    const isValid = verifyOtpHash(otp, record.otpHash);
+    if (!isValid) {
+      record.attempts += 1;
+      await record.save();
+      const remaining = 5 - record.attempts;
+      throw new ApiError(
+        400,
+        `Invalid verification code. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`,
+      );
+    }
+
+    // Code verified: delete record to prevent reuse
+    await EmailVerification.deleteOne({ _id: record._id });
+
+    // Generate signed emailVerificationToken valid for 15 minutes
+    const emailVerificationToken = jwt.sign(
+      { email: cleanEmail, purpose: "pre_registration_verified" },
+      appConfig.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    return sendResponse(res, 200, "Email verified successfully.", {
+      email: cleanEmail,
+      emailVerificationToken,
+    });
+  },
+);
+
+/**
  * 1. Register a new user
  * POST /api/auth/register
  */
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone, password, role } = req.body;
+  const { name, email, phone, password, role, emailVerificationToken } = req.body;
+  const cleanEmail = email.toLowerCase().trim();
 
-  // Check if user already exists
+  // If email verification token is provided, verify it first
+  if (emailVerificationToken) {
+    let tokenEmail: string | undefined;
+    try {
+      const decoded = jwt.verify(
+        emailVerificationToken,
+        appConfig.JWT_ACCESS_SECRET,
+      ) as { email: string; purpose: string };
+
+      if (decoded.purpose !== "pre_registration_verified" || !decoded.email) {
+        throw new ApiError(400, "Invalid email verification token.");
+      }
+      tokenEmail = decoded.email.toLowerCase().trim();
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(
+        400,
+        "Verification token has expired or is invalid. Please verify your email again.",
+      );
+    }
+
+    if (tokenEmail !== cleanEmail) {
+      throw new ApiError(
+        400,
+        "Verified email does not match registration email.",
+      );
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email: cleanEmail }, { phone }],
+    });
+
+    if (existingUser) {
+      if (existingUser.email === cleanEmail) {
+        throw new ApiError(409, "An account with this email already exists.");
+      }
+      throw new ApiError(
+        409,
+        "An account with this phone number already exists.",
+      );
+    }
+
+    const requestedRole = role || USER_ROLES.CUSTOMER;
+    const isApproved = requestedRole === USER_ROLES.CUSTOMER;
+
+    // Create verified user directly
+    const user = await User.create({
+      name,
+      email: cleanEmail,
+      phone,
+      password,
+      role: requestedRole,
+      isVerified: true,
+      isApproved,
+    });
+
+    return sendTokenResponse(
+      user,
+      201,
+      res,
+      isApproved
+        ? "Registration successful! Welcome to BitDesk."
+        : "Registration successful. Your account is pending administrator approval.",
+    );
+  }
+
+  // Fallback: Legacy registration flow (requires OTP verification after creation)
   const existingUser = await User.findOne({
-    $or: [{ email }, { phone }],
+    $or: [{ email: cleanEmail }, { phone }],
   });
 
   if (existingUser) {
-    if (existingUser.email === email) {
+    if (existingUser.email === cleanEmail) {
       throw new ApiError(409, "An account with this email already exists.");
     }
     throw new ApiError(
@@ -79,7 +268,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // Create user
   const user = await User.create({
     name,
-    email,
+    email: cleanEmail,
     phone,
     password,
     role: requestedRole,
@@ -91,11 +280,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   // Log OTP to terminal for development testing
   console.log(`\n========================================`);
-  console.log(`[AUTH] Registration OTP for ${email}: ${otp}`);
+  console.log(`[AUTH] Registration OTP for ${cleanEmail}: ${otp}`);
   console.log(`========================================\n`);
 
   // Dispatch OTP email via Resend / SMTP / Relay and SMS via Twilio
-  sendOtpEmail(email, name, otp, "Account Registration");
+  sendOtpEmail(cleanEmail, name, otp, "Account Registration");
   if (phone) {
     sendOtpSms(phone, otp, "Account Registration");
   }
