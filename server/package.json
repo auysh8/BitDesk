@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --import tsx --test src/tests/api.test.ts",
-    "dev": "tsx watch src/server.ts"
+    "dev": "node api.js && tsx watch src/server.ts"
   },
   "keywords": [],
   "type": "module",
