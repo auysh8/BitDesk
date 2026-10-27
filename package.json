@@ -4,9 +4,9 @@
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "index.js",
   "scripts": {
-    "dev": "node api.js && concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "dev:client": "node api.js && npm run dev --prefix client",
-    "dev:server": "node api.js && npm run dev --prefix server",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
